@@ -1,5 +1,8 @@
 use std::time::Instant;
 
+use crate::collector::Collector;
+use crate::collector::cpu::CpuCollector;
+use crate::collector::memory::MemoryCollector;
 use crate::config::keybindings::KeyBindings;
 use crate::config::settings::Config;
 
@@ -18,6 +21,8 @@ pub struct App {
     config: Config,
     keybindings: KeyBindings,
     terminal_size: (u16, u16),
+    pub cpu: CpuCollector,
+    pub mem: MemoryCollector,
 }
 
 impl App {
@@ -27,6 +32,14 @@ impl App {
             .unwrap_or_else(|_| "unknown".to_string());
 
         let keybindings = KeyBindings::new(&config.keybindings);
+        let history_depth = config.graph_history_depth;
+
+        let mut cpu = CpuCollector::new(history_depth);
+        let mut mem = MemoryCollector::new(history_depth);
+
+        // Initial collection so first render has data
+        let _ = cpu.collect();
+        let _ = mem.collect();
 
         Self {
             state: AppState::Running,
@@ -35,7 +48,15 @@ impl App {
             config,
             keybindings,
             terminal_size: (80, 24),
+            cpu,
+            mem,
         }
+    }
+
+    /// Collect fresh data from all collectors.
+    pub fn collect_all(&mut self) {
+        let _ = self.cpu.collect();
+        let _ = self.mem.collect();
     }
 
     pub fn state(&self) -> AppState {

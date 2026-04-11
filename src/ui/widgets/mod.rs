@@ -1,1 +1,2 @@
-// Widget modules will be added in Stage 3+.
+pub mod cpu_box;
+pub mod mem_box;

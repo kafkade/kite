@@ -76,7 +76,7 @@ async fn main() -> Result<()> {
             AppEvent::Key(key) => input::keyboard::handle_key_event(&mut app, key),
             AppEvent::Resize(w, h) => app.on_resize(w, h),
             AppEvent::Tick => {
-                // Data collection will happen here in Stage 3+
+                app.collect_all();
             }
             AppEvent::RenderTick | AppEvent::Mouse(_) => {}
         }

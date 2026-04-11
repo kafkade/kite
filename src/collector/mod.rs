@@ -1,3 +1,7 @@
+pub mod memory;
+
+pub mod cpu;
+
 use anyhow::Result;
 
 /// Trait for all data collectors (CPU, memory, disk, network, etc.).

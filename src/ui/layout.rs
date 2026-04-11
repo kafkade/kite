@@ -1,12 +1,13 @@
 use ratatui::{
     Frame,
     layout::{Constraint, Direction, Layout, Rect},
-    style::{Color, Modifier, Style},
+    style::{Color, Style},
     text::{Line, Span},
-    widgets::{Block, Borders, Paragraph},
+    widgets::Paragraph,
 };
 
 use crate::app::App;
+use crate::ui::widgets::{cpu_box, mem_box};
 
 /// Render the full application layout.
 pub fn render(frame: &mut Frame, app: &App) {
@@ -21,34 +22,22 @@ pub fn render(frame: &mut Frame, app: &App) {
         ])
         .split(size);
 
-    render_main_area(frame, outer[0]);
+    render_main_area(frame, outer[0], app);
     render_status_bar(frame, outer[1], app);
 }
 
-/// Render the main content area (placeholder for Stage 3+).
-fn render_main_area(frame: &mut Frame, area: Rect) {
-    let block = Block::default()
-        .title(" Kite ")
-        .borders(Borders::ALL)
-        .border_style(Style::default().fg(Color::Cyan));
+/// Render the main content area with CPU and Memory panels side by side.
+fn render_main_area(frame: &mut Frame, area: Rect, app: &App) {
+    let panels = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([
+            Constraint::Percentage(50),
+            Constraint::Percentage(50),
+        ])
+        .split(area);
 
-    let welcome = Paragraph::new(vec![
-        Line::from(""),
-        Line::from(Span::styled(
-            "  Welcome to Kite — system resource monitor",
-            Style::default()
-                .fg(Color::White)
-                .add_modifier(Modifier::BOLD),
-        )),
-        Line::from(""),
-        Line::from(Span::styled(
-            "  Press 'q' to quit  |  '?' for help",
-            Style::default().fg(Color::DarkGray),
-        )),
-    ])
-    .block(block);
-
-    frame.render_widget(welcome, area);
+    cpu_box::render(frame, panels[0], &app.cpu);
+    mem_box::render(frame, panels[1], &app.mem);
 }
 
 /// Render the bottom status bar.
