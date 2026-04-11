@@ -1,0 +1,26 @@
+# Build artifacts
+/target
+**/*.rs.bk
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# OS
+Thumbs.db
+Desktop.ini
+
+# Debug
+*.pdb
+
+# Environment
+.env
+.env.*
+
+# Logs
+*.log
+logs/
