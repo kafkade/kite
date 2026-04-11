@@ -1,6 +1,8 @@
-pub mod memory;
-
 pub mod cpu;
+
+pub mod network;
+pub mod disk;
+pub mod memory;
 
 use anyhow::Result;
 

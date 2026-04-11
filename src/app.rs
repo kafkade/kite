@@ -2,7 +2,9 @@ use std::time::Instant;
 
 use crate::collector::Collector;
 use crate::collector::cpu::CpuCollector;
+use crate::collector::disk::DiskCollector;
 use crate::collector::memory::MemoryCollector;
+use crate::collector::network::NetworkCollector;
 use crate::config::keybindings::KeyBindings;
 use crate::config::settings::Config;
 
@@ -23,6 +25,8 @@ pub struct App {
     terminal_size: (u16, u16),
     pub cpu: CpuCollector,
     pub mem: MemoryCollector,
+    pub disk: DiskCollector,
+    pub net: NetworkCollector,
 }
 
 impl App {
@@ -36,10 +40,14 @@ impl App {
 
         let mut cpu = CpuCollector::new(history_depth);
         let mut mem = MemoryCollector::new(history_depth);
+        let mut disk = DiskCollector::new(history_depth);
+        let mut net = NetworkCollector::new(history_depth);
 
         // Initial collection so first render has data
         let _ = cpu.collect();
         let _ = mem.collect();
+        let _ = disk.collect();
+        let _ = net.collect();
 
         Self {
             state: AppState::Running,
@@ -50,6 +58,8 @@ impl App {
             terminal_size: (80, 24),
             cpu,
             mem,
+            disk,
+            net,
         }
     }
 
@@ -57,6 +67,8 @@ impl App {
     pub fn collect_all(&mut self) {
         let _ = self.cpu.collect();
         let _ = self.mem.collect();
+        let _ = self.disk.collect();
+        let _ = self.net.collect();
     }
 
     pub fn state(&self) -> AppState {

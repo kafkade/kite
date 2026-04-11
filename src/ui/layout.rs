@@ -7,7 +7,7 @@ use ratatui::{
 };
 
 use crate::app::App;
-use crate::ui::widgets::{cpu_box, mem_box};
+use crate::ui::widgets::{cpu_box, disk_box, mem_box, net_box};
 
 /// Render the full application layout.
 pub fn render(frame: &mut Frame, app: &App) {
@@ -26,18 +26,38 @@ pub fn render(frame: &mut Frame, app: &App) {
     render_status_bar(frame, outer[1], app);
 }
 
-/// Render the main content area with CPU and Memory panels side by side.
+/// Render the main content area with 4-panel grid:
+/// CPU | Memory (top row)
+/// Network | Disk (bottom row)
 fn render_main_area(frame: &mut Frame, area: Rect, app: &App) {
-    let panels = Layout::default()
-        .direction(Direction::Horizontal)
+    let rows = Layout::default()
+        .direction(Direction::Vertical)
         .constraints([
             Constraint::Percentage(50),
             Constraint::Percentage(50),
         ])
         .split(area);
 
-    cpu_box::render(frame, panels[0], &app.cpu);
-    mem_box::render(frame, panels[1], &app.mem);
+    let top_cols = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([
+            Constraint::Percentage(50),
+            Constraint::Percentage(50),
+        ])
+        .split(rows[0]);
+
+    let bottom_cols = Layout::default()
+        .direction(Direction::Horizontal)
+        .constraints([
+            Constraint::Percentage(50),
+            Constraint::Percentage(50),
+        ])
+        .split(rows[1]);
+
+    cpu_box::render(frame, top_cols[0], &app.cpu);
+    mem_box::render(frame, top_cols[1], &app.mem);
+    net_box::render(frame, bottom_cols[0], &app.net);
+    disk_box::render(frame, bottom_cols[1], &app.disk);
 }
 
 /// Render the bottom status bar.
