@@ -5,8 +5,11 @@ use crate::collector::cpu::CpuCollector;
 use crate::collector::disk::DiskCollector;
 use crate::collector::memory::MemoryCollector;
 use crate::collector::network::NetworkCollector;
+use crate::collector::process::ProcessCollector;
 use crate::config::keybindings::KeyBindings;
 use crate::config::settings::Config;
+use crate::ui::dialog::ConfirmDialog;
+use crate::ui::widgets::proc_box::ProcessWidget;
 
 /// Application state machine.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -27,6 +30,9 @@ pub struct App {
     pub mem: MemoryCollector,
     pub disk: DiskCollector,
     pub net: NetworkCollector,
+    pub proc_collector: ProcessCollector,
+    pub proc_widget: ProcessWidget,
+    pub dialog: Option<ConfirmDialog>,
 }
 
 impl App {
@@ -42,12 +48,14 @@ impl App {
         let mut mem = MemoryCollector::new(history_depth);
         let mut disk = DiskCollector::new(history_depth);
         let mut net = NetworkCollector::new(history_depth);
+        let mut proc_collector = ProcessCollector::new();
 
         // Initial collection so first render has data
         let _ = cpu.collect();
         let _ = mem.collect();
         let _ = disk.collect();
         let _ = net.collect();
+        let _ = proc_collector.collect();
 
         Self {
             state: AppState::Running,
@@ -60,6 +68,9 @@ impl App {
             mem,
             disk,
             net,
+            proc_collector,
+            proc_widget: ProcessWidget::new(),
+            dialog: None,
         }
     }
 
@@ -69,6 +80,11 @@ impl App {
         let _ = self.mem.collect();
         let _ = self.disk.collect();
         let _ = self.net.collect();
+        let _ = self.proc_collector.collect();
+    }
+
+    pub fn has_dialog(&self) -> bool {
+        self.dialog.is_some()
     }
 
     pub fn state(&self) -> AppState {
