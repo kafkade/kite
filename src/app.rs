@@ -1,5 +1,8 @@
 use std::time::Instant;
 
+use crate::config::keybindings::KeyBindings;
+use crate::config::settings::Config;
+
 /// Application state machine.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum AppState {
@@ -12,21 +15,25 @@ pub struct App {
     state: AppState,
     hostname: String,
     start_time: Instant,
-    update_interval_ms: u64,
+    config: Config,
+    keybindings: KeyBindings,
     terminal_size: (u16, u16),
 }
 
 impl App {
-    pub fn new(update_interval_ms: u64) -> Self {
+    pub fn new(config: Config) -> Self {
         let hostname = hostname::get()
             .map(|h| h.to_string_lossy().to_string())
             .unwrap_or_else(|_| "unknown".to_string());
+
+        let keybindings = KeyBindings::new(&config.keybindings);
 
         Self {
             state: AppState::Running,
             hostname,
             start_time: Instant::now(),
-            update_interval_ms,
+            config,
+            keybindings,
             terminal_size: (80, 24),
         }
     }
@@ -48,7 +55,15 @@ impl App {
     }
 
     pub fn update_interval_ms(&self) -> u64 {
-        self.update_interval_ms
+        self.config.update_interval_ms
+    }
+
+    pub fn config(&self) -> &Config {
+        &self.config
+    }
+
+    pub fn keybindings(&self) -> &KeyBindings {
+        &self.keybindings
     }
 
     pub fn on_resize(&mut self, width: u16, height: u16) {

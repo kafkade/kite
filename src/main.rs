@@ -1,4 +1,6 @@
 mod app;
+mod collector;
+mod config;
 mod input;
 mod ui;
 mod util;
@@ -17,25 +19,41 @@ use input::AppEvent;
 #[derive(Parser, Debug)]
 #[command(version, about)]
 struct Cli {
-    /// Update interval in milliseconds
-    #[arg(short, long, default_value_t = 1000)]
-    interval: u64,
+    /// Update interval in milliseconds (min: 100)
+    #[arg(short, long)]
+    interval: Option<u64>,
+
+    /// Generate a default config file and exit
+    #[arg(long)]
+    generate_config: bool,
 }
 
 #[tokio::main]
 async fn main() -> Result<()> {
     let cli = Cli::parse();
 
+    if cli.generate_config {
+        let path = config::generate_default()?;
+        println!("Default config written to: {}", path.display());
+        return Ok(());
+    }
+
+    // Load config: file defaults → CLI overrides
+    let mut cfg = config::load()?;
+    config::apply_cli_overrides(&mut cfg, cli.interval);
+
     ui::install_panic_hook();
 
     let mut guard = ui::TerminalGuard::new()?;
     let terminal = guard.terminal_mut();
-    let mut app = App::new(cli.interval);
+
+    let interval_ms = cfg.update_interval_ms;
+    let mut app = App::new(cfg);
 
     // Initial draw before entering the loop
     terminal.draw(|frame| ui::layout::render(frame, &app))?;
 
-    let mut data_tick = tokio::time::interval(Duration::from_millis(cli.interval));
+    let mut data_tick = tokio::time::interval(Duration::from_millis(interval_ms));
     let mut render_tick = tokio::time::interval(Duration::from_millis(250));
     let mut event_stream = EventStream::new();
 
