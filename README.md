@@ -1,5 +1,9 @@
 # 🪁 Kite
 
+[![CI](https://github.com/kafkade/kite/actions/workflows/ci.yml/badge.svg)](https://github.com/kafkade/kite/actions/workflows/ci.yml)
+[![License: MIT OR Apache-2.0](https://img.shields.io/crates/l/kite)](LICENSE-MIT)
+[![Rust](https://img.shields.io/badge/rust-1.85%2B-orange.svg)](https://www.rust-lang.org/)
+
 A modern, cross-platform TUI system resource monitor written in Rust — inspired by [btop++](https://github.com/aristocratos/btop).
 
 Kite gives you a real-time, interactive terminal dashboard for CPU, memory, disk, network, GPU, containers, and processes — with full keyboard/mouse control, customizable themes and layouts, configurable alerts, and remote monitoring over SSH.
@@ -55,7 +59,7 @@ Kite gives you a real-time, interactive terminal dashboard for CPU, memory, disk
 ### Build & Run
 
 ```bash
-git clone https://github.com/your-org/kite.git
+git clone https://github.com/kafkade/kite.git
 cd kite
 cargo build --release
 ./target/release/kite
@@ -124,55 +128,9 @@ For the full specification, see [`docs/SPEC.md`](docs/SPEC.md).
 
 ## Contributing
 
-### Getting Started
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details on how to get started.
 
-1. **Read the spec**: [`docs/SPEC.md`](docs/SPEC.md) contains the full project specification — architecture, module structure, design patterns, and all planned features across 5 phases.
-
-2. **Check the plan**: [`PLAN.md`](PLAN.md) tracks implementation progress. The status table at the top shows what's done and what's next.
-
-3. **Understand the stages**: Phase 1 is broken into 6 sequential stages. Pick up from the first `⬜ Not Started` stage — each stage's section in PLAN.md describes exactly what to build and the exit criteria.
-
-4. **Set up your environment**:
-   ```bash
-   git clone https://github.com/your-org/kite.git
-   cd kite
-   cargo build
-   cargo test
-   ```
-
-5. **Run the app** to see current state:
-   ```bash
-   cargo run
-   cargo run -- --interval 500   # faster refresh
-   ```
-
-### Development Workflow
-
-```bash
-cargo build              # Build
-cargo test               # Run all tests
-cargo clippy             # Lint
-cargo fmt                # Format
-cargo run                # Launch the TUI
-```
-
-### Code Guidelines
-
-- **Rust edition 2024**, target `clippy::pedantic` lint level
-- `thiserror` for library/domain errors, `anyhow` at the binary boundary
-- Prefer `tokio::sync::watch` channels for collector → UI data flow
-- Each collector should be independently testable with mock data
-- Document public APIs with `///` doc comments
-- Keep functions small and modules focused
-
-### Project Structure at a Glance
-
-| File | Purpose |
-|------|---------|
-| `PLAN.md` | Implementation tracker — check here first |
-| `docs/SPEC.md` | Full project specification (features, architecture, NFRs) |
-| `docs/HANDOFF.md` | Context from the initial planning session |
-| `Cargo.toml` | Dependencies and project metadata |
+Before contributing, please read our [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ---
 
