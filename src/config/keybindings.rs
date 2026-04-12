@@ -58,10 +58,9 @@ impl KeyBindings {
         let mut map = Self::defaults();
 
         for (action_str, key_str) in overrides {
-            if let (Some(action), Some(keybind)) = (
-                parse_action(action_str),
-                parse_keybind(key_str),
-            ) {
+            if let (Some(action), Some(keybind)) =
+                (parse_action(action_str), parse_keybind(key_str))
+            {
                 // Remove any existing binding for this action
                 map.retain(|_, v| *v != action);
                 map.insert(keybind, action);
@@ -133,9 +132,7 @@ fn parse_keybind(s: &str) -> Option<KeyBind> {
     if let Some(rest) = s.strip_prefix("ctrl+") {
         let rest = rest.trim();
         if rest.len() == 1 {
-            return Some(KeyBind::ctrl(KeyCode::Char(
-                rest.chars().next().unwrap(),
-            )));
+            return Some(KeyBind::ctrl(KeyCode::Char(rest.chars().next().unwrap())));
         }
     }
 
@@ -202,7 +199,10 @@ mod tests {
             parse_keybind("ctrl+c"),
             Some(KeyBind::ctrl(KeyCode::Char('c')))
         );
-        assert_eq!(parse_keybind("space"), Some(KeyBind::plain(KeyCode::Char(' '))));
+        assert_eq!(
+            parse_keybind("space"),
+            Some(KeyBind::plain(KeyCode::Char(' ')))
+        );
         assert_eq!(parse_keybind("tab"), Some(KeyBind::plain(KeyCode::Tab)));
         assert_eq!(parse_keybind("esc"), Some(KeyBind::plain(KeyCode::Esc)));
     }

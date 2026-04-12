@@ -17,6 +17,7 @@ pub struct MemoryCollector {
     swap_history: RingBuffer<f64>,
 }
 
+#[allow(dead_code)]
 impl MemoryCollector {
     pub fn new(history_capacity: usize) -> Self {
         Self {

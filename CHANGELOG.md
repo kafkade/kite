@@ -8,7 +8,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
-- Phase 1 Stage 6: Help overlay, settings menu, vim keys, responsive layout, color detection (planned)
+- Interactive process table with sortable columns (PID, name, user, CPU%, memory, status, threads)
+- Process tree view showing parent-child relationships with indented hierarchy
+- Process search and filtering with inline filter input bar
+- Process management: send signals (SIGTERM, SIGKILL, SIGSTOP, SIGCONT) and renice processes
+- Confirmation dialogs for destructive actions (kill/signal) with keyboard navigation
+- Process table keyboard navigation: scroll, select, sort column cycling, sort order toggle
+- Process detail view showing full command line, environment, and open connections
 
 ## [0.1.0] - 2025-04-11
 

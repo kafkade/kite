@@ -91,4 +91,3 @@ async fn main() -> Result<()> {
     // TerminalGuard::drop handles cleanup
     Ok(())
 }
-

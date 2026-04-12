@@ -1,12 +1,12 @@
-use std::io::{self, stdout, Stdout};
+use std::io::{self, Stdout, stdout};
 
 use crossterm::{
-    ExecutableCommand,
-    cursor,
+    ExecutableCommand, cursor,
     terminal::{self, EnterAlternateScreen, LeaveAlternateScreen},
 };
 use ratatui::{Terminal, prelude::CrosstermBackend};
 
+pub mod dialog;
 pub mod layout;
 pub mod widgets;
 

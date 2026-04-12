@@ -9,6 +9,7 @@ use crate::util::ring_buffer::RingBuffer;
 
 /// Per-interface network statistics.
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct InterfaceInfo {
     pub name: String,
     pub rx_bytes_sec: f64,
@@ -31,6 +32,7 @@ pub struct NetworkCollector {
     tx_history: RingBuffer<f64>,
 }
 
+#[allow(dead_code)]
 impl NetworkCollector {
     pub fn new(history_capacity: usize) -> Self {
         let networks = Networks::new_with_refreshed_list();

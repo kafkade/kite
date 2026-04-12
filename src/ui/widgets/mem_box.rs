@@ -1,9 +1,9 @@
 use ratatui::{
+    Frame,
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
     widgets::{Block, Borders, Paragraph, Sparkline},
-    Frame,
 };
 
 use crate::collector::memory::MemoryCollector;
@@ -19,10 +19,7 @@ fn render_gauge(label: &str, percent: f64, bar_width: usize, color: Color) -> Li
     let bar_empty: String = "░".repeat(empty);
 
     Line::from(vec![
-        Span::styled(
-            format!("{:<4} [", label),
-            Style::default().fg(Color::White),
-        ),
+        Span::styled(format!("{:<4} [", label), Style::default().fg(Color::White)),
         Span::styled(bar_filled, Style::default().fg(color)),
         Span::styled(bar_empty, Style::default().fg(Color::DarkGray)),
         Span::styled(
@@ -78,9 +75,12 @@ pub fn render(frame: &mut Frame, area: Rect, mem: &MemoryCollector) {
     let ram_pct = mem.ram_usage_percent();
     let bar_width = (sections[1].width as usize).saturating_sub(14); // account for label + brackets + pct
 
-    let mut gauge_lines = vec![
-        render_gauge("RAM", ram_pct, bar_width, usage_color(ram_pct)),
-    ];
+    let mut gauge_lines = vec![render_gauge(
+        "RAM",
+        ram_pct,
+        bar_width,
+        usage_color(ram_pct),
+    )];
 
     if mem.swap_total() > 0 {
         let swap_pct = mem.swap_usage_percent();

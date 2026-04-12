@@ -25,8 +25,8 @@ pub fn load() -> Result<Config> {
         return Ok(Config::default());
     }
 
-    let contents =
-        std::fs::read_to_string(&path).with_context(|| format!("reading config: {}", path.display()))?;
+    let contents = std::fs::read_to_string(&path)
+        .with_context(|| format!("reading config: {}", path.display()))?;
 
     let config: Config =
         toml::from_str(&contents).with_context(|| format!("parsing config: {}", path.display()))?;

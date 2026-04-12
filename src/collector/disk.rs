@@ -8,6 +8,7 @@ use crate::util::ring_buffer::RingBuffer;
 
 /// Information about a single mounted filesystem / partition.
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct DiskInfo {
     pub name: String,
     pub mount_point: String,
@@ -29,6 +30,7 @@ pub struct DiskCollector {
     last_collect: Instant,
 }
 
+#[allow(dead_code)]
 impl DiskCollector {
     pub fn new(history_capacity: usize) -> Self {
         let disks = Disks::new_with_refreshed_list();
