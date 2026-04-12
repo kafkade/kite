@@ -8,45 +8,37 @@ A modern, cross-platform TUI system resource monitor written in Rust — inspire
 
 Kite gives you a real-time, interactive terminal dashboard for CPU, memory, disk, network, GPU, containers, and processes — with full keyboard/mouse control, customizable themes and layouts, configurable alerts, and remote monitoring over SSH.
 
-> **Status**: 🚧 Early development — Phase 1 (core metrics MVP) in progress.
+> **Status**: ✅ v1.0.0 stable — Phase 1 complete. All core metrics, process management, help overlay, and settings menu are live.
 
 ---
 
-## Features (Planned)
+## Features
 
-### Phase 1 — Core Metrics *(in progress)*
-- Real-time CPU monitoring (total + per-core, frequency, load averages)
-- Memory & swap usage with historical graphs
+### Core Dashboard
+- Real-time CPU monitoring (total + per-core, frequency, load averages) with braille graphs
+- Memory & swap usage with historical graphs and bar gauges
 - Disk I/O rates and filesystem usage
 - Network interface traffic with auto-scaling graphs
+- 5-panel layout (CPU, memory, disk, network, process table)
+
+### Process Management
 - Interactive process table (sort, filter, search, tree view)
-- Process management (kill, signal, renice)
+- Process signals (SIGTERM, SIGKILL, SIGSTOP, SIGCONT) and renice
+- Confirmation dialogs for destructive actions
+- Vim-style navigation (`j`/`k`) and keyboard-driven workflow
+
+### UI & Configuration
+- Help overlay (`?`) showing all keybindings
+- In-app settings menu (`m`) — adjust update interval, graph symbols, toggle panels at runtime
+- TOML-based configuration with CLI argument overrides
 - Configurable update interval and keybindings
-- TOML-based configuration
+- Input mode system with status bar indicators
 
-### Phase 2 — Hardware & Theming
-- GPU monitoring (NVIDIA, AMD, Intel, Apple Silicon)
-- Hardware sensors (CPU/GPU/disk temperature, fan speed, voltage)
-- Battery status and health
-- Full theming engine (ship 10+ themes: Dracula, Catppuccin, Nord, etc.)
-- Custom layouts and presets
-
-### Phase 3 — Containers & Alerts
-- Docker container monitoring and management
-- Kubernetes pod/node monitoring
-- Configurable threshold alerts with desktop notifications
-
-### Phase 4 — Remote & Export
-- SSH remote machine monitoring
-- Prometheus metrics endpoint
-- Metrics logging to JSON/CSV files
-- Data replay mode for post-mortem analysis
-
-### Phase 5 — Polish & Distribution
-- Accessibility (screen reader, colorblind-safe themes)
-- Internationalization
-- Packaging for all platforms (deb, rpm, brew, winget, snap, etc.)
-- Plugin/extension system
+### Planned
+- **Phase 2**: GPU monitoring, hardware sensors, theming engine
+- **Phase 3**: Docker/Kubernetes container monitoring, alerts
+- **Phase 4**: SSH remote monitoring, Prometheus export
+- **Phase 5**: Accessibility, i18n, platform packaging
 
 ---
 
@@ -80,10 +72,18 @@ Options:
 
 | Key | Action |
 |-----|--------|
-| `q` | Quit |
-| `Ctrl+C` | Quit |
-
-> More keybindings will be added as features land.
+| `q` / `Ctrl+C` | Quit |
+| `?` | Toggle help overlay |
+| `m` | Toggle settings menu |
+| `r` | Force refresh |
+| `↑`/`↓` or `j`/`k` | Scroll process list |
+| `←`/`→` | Change sort column |
+| `Space` | Pause/unpause process updates |
+| `/` | Filter processes |
+| `t` | Toggle tree view |
+| `K` | Kill selected process |
+| `PgUp`/`PgDn` | Page scroll |
+| `Esc` | Close overlay / clear filter |
 
 ---
 
@@ -94,7 +94,7 @@ Kite uses a TOML config file located at:
 - **Linux/macOS**: `$XDG_CONFIG_HOME/kite/config.toml` or `~/.config/kite/config.toml`
 - **Windows**: `%APPDATA%\kite\config.toml`
 
-> Configuration system is coming in Stage 2. For now, use CLI flags.
+You can also adjust settings at runtime via the settings menu (`m`).
 
 ---
 
@@ -103,14 +103,16 @@ Kite uses a TOML config file located at:
 ```
 src/
 ├── main.rs              # Entry point, CLI args (clap), async event loop
-├── app.rs               # Application state machine
+├── app.rs               # Application state machine, input modes
 ├── config/              # TOML config loading, keybindings
-├── collector/           # Data collection (CPU, memory, disk, network, etc.)
-│   └── platform/        # Platform-specific implementations
+├── collector/           # Data collection (CPU, memory, disk, network, process)
 ├── ui/
 │   ├── layout.rs        # Layout engine and rendering
+│   ├── help.rs          # Help overlay (? key)
+│   ├── menu.rs          # In-app settings menu (m key)
+│   ├── dialog.rs        # Confirmation dialogs
 │   └── widgets/         # Individual panel widgets (cpu_box, mem_box, etc.)
-├── input/               # Keyboard and mouse event handling
+├── input/               # Keyboard event handling with input modes
 └── util/                # Ring buffer, unit formatting, error types
 ```
 

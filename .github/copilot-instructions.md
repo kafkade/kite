@@ -22,17 +22,21 @@ Kite is an async TUI app built on `ratatui` + `crossterm` + `tokio`.
 
 **Terminal lifecycle** (`ui/mod.rs`): `TerminalGuard` is an RAII wrapper that enters alternate screen + raw mode on construction and restores on `Drop`. A separate panic hook (`install_panic_hook`) chains the previous hook and restores the terminal before printing the panic — this is a backup for the RAII guard.
 
-**Collector pattern** (`collector/`): Each data source will implement a `Collector` trait. Collectors produce `MetricSnapshot` values that get pushed into `RingBuffer<T>` (a fixed-capacity `VecDeque` wrapper in `util/ring_buffer.rs`) for time-series graph rendering.
+**Collector pattern** (`collector/`): Each data source implements a `Collector` trait (CPU, memory, disk, network, process). Collectors produce snapshot values pushed into `RingBuffer<T>` (a fixed-capacity `VecDeque` wrapper in `util/ring_buffer.rs`) for time-series graph rendering.
 
 **Data flow**: Collectors → `App` state (owned data) → `ui::layout::render()` reads `&App` to draw widgets. No channels yet — direct ownership. When remote/async collectors arrive, use `tokio::sync::watch` channels, not `Arc<RwLock<>>`.
 
-**Widget pattern** (`ui/widgets/`): Each panel (cpu_box, mem_box, etc.) is a function that takes `&mut Frame`, a `Rect`, and the relevant data slice from `App`, then renders into that region using ratatui widgets.
+**Widget pattern** (`ui/widgets/`): Each panel (cpu_box, mem_box, net_box, disk_box, proc_box) is a function that takes `&mut Frame`, a `Rect`, and the relevant data slice from `App`, then renders into that region using ratatui widgets.
+
+**Overlays** (`ui/help.rs`, `ui/menu.rs`, `ui/dialog.rs`): Modal overlays render on top of the main layout. The `InputMode` enum in `app.rs` (Normal, Filtering, Help, Menu) determines how key events are routed.
+
+**Input modes** (`input/keyboard.rs`): Key events are dispatched through mode-specific handlers (`handle_normal`, `handle_help`, `handle_menu`, `handle_filter`, `handle_dialog`). Dialog takes priority over all modes.
 
 ## Conventions
 
 - **Error handling**: `thiserror` for domain error enums (`util/error.rs`), `anyhow::Result` at the binary boundary (`main.rs`). Don't use `unwrap()` in library code.
 - **Graceful degradation**: If a system API is unavailable (sensor, GPU, container runtime), show "N/A" — never crash.
-- **Input handling**: Key events are mapped to actions in `input/keyboard.rs`. When adding new keybindings, match on `KeyCode` variants; modifier keys use `key.modifiers.contains(KeyModifiers::CONTROL)`.
+- **Input handling**: Key events are dispatched by `InputMode` in `input/keyboard.rs`. Each mode (Normal, Help, Menu, Filtering) has its own handler. When adding new keybindings, match on `KeyCode` variants; modifier keys use `key.modifiers.contains(KeyModifiers::CONTROL)`.
 - **App state mutations**: Go through `App` methods — don't reach into fields directly from input handlers or UI code.
 - **Platform-specific code**: Use `#[cfg(target_os = "...")]` at the module level in `collector/platform/`. Implement the same trait interface for each platform.
 
@@ -42,6 +46,7 @@ Kite is an async TUI app built on `ratatui` + `crossterm` + `tokio`.
 
 ## Key References
 
-- `PLAN.md` — Implementation tracker with stage status. Update the status table when completing a stage.
+- `PLAN.md` — Implementation tracker with stage status.
 - `docs/SPEC.md` — Full project specification: features, architecture, module structure, NFRs, design decisions.
+- `docs/RELEASING.md` — Release process, changelog maintenance, versioning policy.
 - `docs/HANDOFF.md` — Context from initial planning sessions.
