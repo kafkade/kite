@@ -9,6 +9,7 @@ use crate::collector::process::ProcessCollector;
 use crate::config::keybindings::KeyBindings;
 use crate::config::settings::Config;
 use crate::ui::dialog::ConfirmDialog;
+use crate::ui::menu::SettingsMenu;
 use crate::ui::widgets::proc_box::ProcessWidget;
 
 /// Application state machine.
@@ -18,9 +19,19 @@ pub enum AppState {
     Quitting,
 }
 
+/// Input mode determines how key events are interpreted.
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum InputMode {
+    Normal,
+    Filtering,
+    Help,
+    Menu,
+}
+
 /// Core application struct holding all shared state.
 pub struct App {
     state: AppState,
+    pub input_mode: InputMode,
     hostname: String,
     start_time: Instant,
     config: Config,
@@ -33,9 +44,9 @@ pub struct App {
     pub proc_collector: ProcessCollector,
     pub proc_widget: ProcessWidget,
     pub dialog: Option<ConfirmDialog>,
+    pub menu: Option<SettingsMenu>,
 }
 
-#[allow(dead_code)]
 impl App {
     pub fn new(config: Config) -> Self {
         let hostname = hostname::get()
@@ -60,6 +71,7 @@ impl App {
 
         Self {
             state: AppState::Running,
+            input_mode: InputMode::Normal,
             hostname,
             start_time: Instant::now(),
             config,
@@ -72,6 +84,7 @@ impl App {
             proc_collector,
             proc_widget: ProcessWidget::new(),
             dialog: None,
+            menu: None,
         }
     }
 
@@ -84,10 +97,50 @@ impl App {
         let _ = self.proc_collector.collect();
     }
 
-    pub fn has_dialog(&self) -> bool {
-        self.dialog.is_some()
+    /// Open the help overlay.
+    pub fn open_help(&mut self) {
+        self.input_mode = InputMode::Help;
     }
 
+    /// Close the help overlay.
+    pub fn close_help(&mut self) {
+        self.input_mode = InputMode::Normal;
+    }
+
+    /// Toggle help overlay.
+    pub fn toggle_help(&mut self) {
+        if self.input_mode == InputMode::Help {
+            self.close_help();
+        } else {
+            self.open_help();
+        }
+    }
+
+    /// Open the settings menu.
+    pub fn open_menu(&mut self) {
+        self.menu = Some(SettingsMenu::from_config(&self.config));
+        self.input_mode = InputMode::Menu;
+    }
+
+    /// Close the settings menu, applying changes.
+    pub fn close_menu(&mut self) {
+        if let Some(ref menu) = self.menu {
+            menu.apply_to_config(&mut self.config);
+        }
+        self.menu = None;
+        self.input_mode = InputMode::Normal;
+    }
+
+    /// Toggle the settings menu.
+    pub fn toggle_menu(&mut self) {
+        if self.input_mode == InputMode::Menu {
+            self.close_menu();
+        } else {
+            self.open_menu();
+        }
+    }
+
+    #[allow(dead_code)]
     pub fn state(&self) -> AppState {
         self.state
     }
@@ -108,6 +161,7 @@ impl App {
         self.config.update_interval_ms
     }
 
+    #[allow(dead_code)]
     pub fn config(&self) -> &Config {
         &self.config
     }
