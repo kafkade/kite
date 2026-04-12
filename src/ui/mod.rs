@@ -7,7 +7,9 @@ use crossterm::{
 use ratatui::{Terminal, prelude::CrosstermBackend};
 
 pub mod dialog;
+pub mod help;
 pub mod layout;
+pub mod menu;
 pub mod widgets;
 
 pub type Tui = Terminal<CrosstermBackend<Stdout>>;

@@ -6,7 +6,7 @@ use ratatui::{
     widgets::Paragraph,
 };
 
-use crate::app::App;
+use crate::app::{App, InputMode};
 use crate::ui::widgets::{cpu_box, disk_box, mem_box, net_box, proc_box};
 
 /// Render the full application layout.
@@ -25,7 +25,18 @@ pub fn render(frame: &mut Frame, app: &App) {
     render_main_area(frame, outer[0], app);
     render_status_bar(frame, outer[1], app);
 
-    // Render dialog overlay on top of everything
+    // Render overlays on top of everything (highest priority last)
+    match app.input_mode {
+        InputMode::Help => crate::ui::help::render(frame),
+        InputMode::Menu => {
+            if let Some(ref menu) = app.menu {
+                crate::ui::menu::render(frame, menu);
+            }
+        }
+        _ => {}
+    }
+
+    // Dialog always renders on top of everything else
     if let Some(ref dialog) = app.dialog {
         crate::ui::dialog::render(frame, dialog);
     }
@@ -67,9 +78,21 @@ fn render_status_bar(frame: &mut Frame, area: Rect, app: &App) {
     let now = chrono::Local::now().format("%H:%M:%S").to_string();
     let uptime_str = crate::util::units::format_duration(app.uptime_secs());
 
-    let left = format!(" Kite v{} │ {} ", env!("CARGO_PKG_VERSION"), app.hostname());
+    let mode_indicator = match app.input_mode {
+        InputMode::Normal => "",
+        InputMode::Filtering => " [FILTER]",
+        InputMode::Help => " [HELP]",
+        InputMode::Menu => " [MENU]",
+    };
+
+    let left = format!(
+        " Kite v{} │ {}{} ",
+        env!("CARGO_PKG_VERSION"),
+        app.hostname(),
+        mode_indicator,
+    );
     let right = format!(
-        " {} │ up {} │ ↻ {}ms ",
+        " ? help │ {} │ up {} │ ↻ {}ms ",
         now,
         uptime_str,
         app.update_interval_ms()
