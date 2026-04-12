@@ -132,6 +132,8 @@ We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) f
 
 Before contributing, please read our [Code of Conduct](CODE_OF_CONDUCT.md).
 
+For maintainers: see [Releasing](docs/RELEASING.md) for the release process.
+
 ---
 
 ## Tech Stack
