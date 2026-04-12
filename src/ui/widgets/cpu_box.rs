@@ -1,9 +1,9 @@
 use ratatui::{
+    Frame,
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Style},
     text::{Line, Span},
     widgets::{Block, Borders, Paragraph, Sparkline},
-    Frame,
 };
 
 use crate::collector::cpu::CpuCollector;
@@ -26,10 +26,7 @@ pub fn render(frame: &mut Frame, area: Rect, cpu: &CpuCollector) {
     // Split vertically: top 60% graph, bottom 40% details
     let vert = Layout::default()
         .direction(Direction::Vertical)
-        .constraints([
-            Constraint::Percentage(60),
-            Constraint::Percentage(40),
-        ])
+        .constraints([Constraint::Percentage(60), Constraint::Percentage(40)])
         .split(inner);
 
     render_history(frame, vert[0], cpu);
@@ -42,16 +39,8 @@ fn render_history(frame: &mut Frame, area: Rect, cpu: &CpuCollector) {
     // Usage label in top-right
     let label_width = usage_text.len() as u16;
     if area.width > label_width + 1 && area.height > 0 {
-        let label_area = Rect::new(
-            area.x + area.width - label_width,
-            area.y,
-            label_width,
-            1,
-        );
-        let label = Paragraph::new(Span::styled(
-            usage_text,
-            Style::default().fg(Color::White),
-        ));
+        let label_area = Rect::new(area.x + area.width - label_width, area.y, label_width, 1);
+        let label = Paragraph::new(Span::styled(usage_text, Style::default().fg(Color::White)));
         frame.render_widget(label, label_area);
     }
 
@@ -79,10 +68,7 @@ fn render_history(frame: &mut Frame, area: Rect, cpu: &CpuCollector) {
 fn render_bottom(frame: &mut Frame, area: Rect, cpu: &CpuCollector) {
     let horiz = Layout::default()
         .direction(Direction::Horizontal)
-        .constraints([
-            Constraint::Percentage(60),
-            Constraint::Percentage(40),
-        ])
+        .constraints([Constraint::Percentage(60), Constraint::Percentage(40)])
         .split(area);
 
     render_core_bars(frame, horiz[0], cpu);

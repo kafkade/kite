@@ -9,6 +9,7 @@ pub struct RingBuffer<T> {
     capacity: usize,
 }
 
+#[allow(dead_code)]
 impl<T> RingBuffer<T> {
     pub fn new(capacity: usize) -> Self {
         Self {
@@ -53,6 +54,7 @@ impl<T> RingBuffer<T> {
     }
 }
 
+#[allow(dead_code)]
 impl<T: Clone> RingBuffer<T> {
     /// Returns all elements as a contiguous Vec (front to back).
     pub fn to_vec(&self) -> Vec<T> {

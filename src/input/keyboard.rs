@@ -13,7 +13,8 @@ pub fn handle_key_event(app: &mut App, key: KeyEvent) {
             KeyCode::Enter => {
                 if dialog.selected == DialogChoice::Confirm {
                     // Execute the kill
-                    if let Some(pid) = app.proc_widget.selected_pid(app.proc_collector.processes()) {
+                    if let Some(pid) = app.proc_widget.selected_pid(app.proc_collector.processes())
+                    {
                         let _ = app.proc_collector.kill_process(pid);
                     }
                 }
@@ -49,7 +50,8 @@ pub fn handle_key_event(app: &mut App, key: KeyEvent) {
             }
             KeyCode::Char(c) => {
                 app.proc_widget.append_filter_char(c);
-                app.proc_collector.set_filter(Some(app.proc_widget.filter_input.clone()));
+                app.proc_collector
+                    .set_filter(Some(app.proc_widget.filter_input.clone()));
             }
             _ => {}
         }
@@ -96,8 +98,11 @@ pub fn handle_key_event(app: &mut App, key: KeyEvent) {
                 }
                 KeyCode::Char('k') | KeyCode::Char('K') => {
                     // Kill selected process (with confirmation)
-                    if let Some(pid) = app.proc_widget.selected_pid(app.proc_collector.processes()) {
-                        let name = app.proc_collector.processes()
+                    if let Some(pid) = app.proc_widget.selected_pid(app.proc_collector.processes())
+                    {
+                        let name = app
+                            .proc_collector
+                            .processes()
                             .iter()
                             .find(|p| p.pid == pid)
                             .map(|p| p.name.clone())

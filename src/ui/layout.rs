@@ -47,18 +47,12 @@ fn render_main_area(frame: &mut Frame, area: Rect, app: &App) {
 
     let top_cols = Layout::default()
         .direction(Direction::Horizontal)
-        .constraints([
-            Constraint::Percentage(50),
-            Constraint::Percentage(50),
-        ])
+        .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
         .split(rows[0]);
 
     let mid_cols = Layout::default()
         .direction(Direction::Horizontal)
-        .constraints([
-            Constraint::Percentage(50),
-            Constraint::Percentage(50),
-        ])
+        .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
         .split(rows[1]);
 
     cpu_box::render(frame, top_cols[0], &app.cpu);
@@ -73,11 +67,7 @@ fn render_status_bar(frame: &mut Frame, area: Rect, app: &App) {
     let now = chrono::Local::now().format("%H:%M:%S").to_string();
     let uptime_str = crate::util::units::format_duration(app.uptime_secs());
 
-    let left = format!(
-        " Kite v{} │ {} ",
-        env!("CARGO_PKG_VERSION"),
-        app.hostname()
-    );
+    let left = format!(" Kite v{} │ {} ", env!("CARGO_PKG_VERSION"), app.hostname());
     let right = format!(
         " {} │ up {} │ ↻ {}ms ",
         now,
@@ -85,9 +75,7 @@ fn render_status_bar(frame: &mut Frame, area: Rect, app: &App) {
         app.update_interval_ms()
     );
 
-    let padding = area
-        .width
-        .saturating_sub((left.len() + right.len()) as u16);
+    let padding = area.width.saturating_sub((left.len() + right.len()) as u16);
 
     let bar = Line::from(vec![
         Span::styled(&left, Style::default().fg(Color::Cyan)),
@@ -95,8 +83,8 @@ fn render_status_bar(frame: &mut Frame, area: Rect, app: &App) {
         Span::styled(&right, Style::default().fg(Color::DarkGray)),
     ]);
 
-    let bar_widget = Paragraph::new(bar)
-        .style(Style::default().bg(Color::DarkGray).fg(Color::White));
+    let bar_widget =
+        Paragraph::new(bar).style(Style::default().bg(Color::DarkGray).fg(Color::White));
 
     frame.render_widget(bar_widget, area);
 }

@@ -1,9 +1,9 @@
 use ratatui::{
+    Frame,
     layout::{Constraint, Direction, Flex, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
     widgets::{Block, Borders, Clear, Paragraph},
-    Frame,
 };
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -13,6 +13,7 @@ pub enum DialogChoice {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[allow(dead_code)]
 pub enum DialogResult {
     Confirm,
     Cancel,
@@ -27,6 +28,7 @@ pub struct ConfirmDialog {
     pub selected: DialogChoice,
 }
 
+#[allow(dead_code)]
 impl ConfirmDialog {
     pub fn new(title: impl Into<String>, message: impl Into<String>) -> Self {
         Self {
@@ -93,10 +95,9 @@ pub fn render(frame: &mut Frame, dialog: &ConfirmDialog) {
 
     // Determine dialog dimensions based on content
     let min_width = dialog.message.len() as u16 + 6;
-    let buttons_width =
-        dialog.cancel_label.len() as u16 + dialog.confirm_label.len() as u16 + 13; // "[ X ] [ Y ]" + padding
+    let buttons_width = dialog.cancel_label.len() as u16 + dialog.confirm_label.len() as u16 + 13; // "[ X ] [ Y ]" + padding
     let title_width = dialog.title.len() as u16 + 6;
-    let width = min_width.max(buttons_width).max(title_width).max(30).min(60);
+    let width = min_width.max(buttons_width).max(title_width).clamp(30, 60);
     let height: u16 = 7;
 
     let dialog_area = centered_rect(width, height, area);
@@ -120,7 +121,7 @@ pub fn render(frame: &mut Frame, dialog: &ConfirmDialog) {
             Constraint::Length(1), // message
             Constraint::Length(1), // spacing
             Constraint::Length(1), // buttons
-            Constraint::Min(0),   // bottom padding
+            Constraint::Min(0),    // bottom padding
         ])
         .split(inner);
 
@@ -152,7 +153,6 @@ pub fn render(frame: &mut Frame, dialog: &ConfirmDialog) {
         Span::styled(format!("[ {} ]", dialog.confirm_label), confirm_style),
     ]);
 
-    let buttons_paragraph =
-        Paragraph::new(buttons).alignment(ratatui::layout::Alignment::Center);
+    let buttons_paragraph = Paragraph::new(buttons).alignment(ratatui::layout::Alignment::Center);
     frame.render_widget(buttons_paragraph, chunks[3]);
 }

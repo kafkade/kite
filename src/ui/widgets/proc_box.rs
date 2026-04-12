@@ -1,9 +1,9 @@
 use ratatui::{
+    Frame,
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Modifier, Style},
     text::{Line, Span},
     widgets::{Block, Borders, Paragraph},
-    Frame,
 };
 
 use crate::collector::process::{ProcessCollector, ProcessInfo, SortColumn, SortOrder};
@@ -17,6 +17,7 @@ pub struct ProcessWidget {
     pub is_filtering: bool,
 }
 
+#[allow(dead_code)]
 impl ProcessWidget {
     pub fn new() -> Self {
         Self {
@@ -39,7 +40,9 @@ impl ProcessWidget {
     }
 
     pub fn page_up(&mut self) {
-        self.selected_index = self.selected_index.saturating_sub(self.visible_height_hint());
+        self.selected_index = self
+            .selected_index
+            .saturating_sub(self.visible_height_hint());
     }
 
     pub fn page_down(&mut self, total_items: usize, visible_height: usize) {
@@ -144,25 +147,116 @@ fn cpu_color(cpu: f32) -> Color {
 }
 
 fn build_header_line(sort_col: SortColumn, sort_ord: SortOrder, width: u16) -> Line<'static> {
-    let cmd_width = width.saturating_sub(COL_PID + COL_NAME + COL_USER + COL_CPU + COL_MEM_PCT + COL_MEM + COL_STATE + COL_THREADS);
-    let hdr_style = Style::default().fg(Color::White).add_modifier(Modifier::BOLD);
+    let cmd_width = width.saturating_sub(
+        COL_PID + COL_NAME + COL_USER + COL_CPU + COL_MEM_PCT + COL_MEM + COL_STATE + COL_THREADS,
+    );
+    let hdr_style = Style::default()
+        .fg(Color::White)
+        .add_modifier(Modifier::BOLD);
 
     let cols: Vec<(String, u16, bool)> = vec![
-        (format!("{:>w$}", format!("PID{}", sort_indicator(SortColumn::Pid, sort_col, sort_ord)), w = COL_PID as usize), COL_PID, true),
-        (format!("{:<w$}", format!("Name{}", sort_indicator(SortColumn::Name, sort_col, sort_ord)), w = COL_NAME as usize), COL_NAME, false),
-        (format!("{:<w$}", format!("User{}", sort_indicator(SortColumn::User, sort_col, sort_ord)), w = COL_USER as usize), COL_USER, false),
-        (format!("{:>w$}", format!("CPU%{}", sort_indicator(SortColumn::Cpu, sort_col, sort_ord)), w = COL_CPU as usize), COL_CPU, true),
-        (format!("{:>w$}", format!("MEM%{}", sort_indicator(SortColumn::Memory, sort_col, sort_ord)), w = COL_MEM_PCT as usize), COL_MEM_PCT, true),
-        (format!("{:>w$}", "MEM", w = COL_MEM as usize), COL_MEM, true),
-        (format!("{:<w$}", format!("State{}", sort_indicator(SortColumn::Status, sort_col, sort_ord)), w = COL_STATE as usize), COL_STATE, false),
-        (format!("{:>w$}", format!("Thr{}", sort_indicator(SortColumn::Threads, sort_col, sort_ord)), w = COL_THREADS as usize), COL_THREADS, true),
-        (format!("{:<w$}", "Command", w = cmd_width as usize), cmd_width, false),
+        (
+            format!(
+                "{:>w$}",
+                format!("PID{}", sort_indicator(SortColumn::Pid, sort_col, sort_ord)),
+                w = COL_PID as usize
+            ),
+            COL_PID,
+            true,
+        ),
+        (
+            format!(
+                "{:<w$}",
+                format!(
+                    "Name{}",
+                    sort_indicator(SortColumn::Name, sort_col, sort_ord)
+                ),
+                w = COL_NAME as usize
+            ),
+            COL_NAME,
+            false,
+        ),
+        (
+            format!(
+                "{:<w$}",
+                format!(
+                    "User{}",
+                    sort_indicator(SortColumn::User, sort_col, sort_ord)
+                ),
+                w = COL_USER as usize
+            ),
+            COL_USER,
+            false,
+        ),
+        (
+            format!(
+                "{:>w$}",
+                format!(
+                    "CPU%{}",
+                    sort_indicator(SortColumn::Cpu, sort_col, sort_ord)
+                ),
+                w = COL_CPU as usize
+            ),
+            COL_CPU,
+            true,
+        ),
+        (
+            format!(
+                "{:>w$}",
+                format!(
+                    "MEM%{}",
+                    sort_indicator(SortColumn::Memory, sort_col, sort_ord)
+                ),
+                w = COL_MEM_PCT as usize
+            ),
+            COL_MEM_PCT,
+            true,
+        ),
+        (
+            format!("{:>w$}", "MEM", w = COL_MEM as usize),
+            COL_MEM,
+            true,
+        ),
+        (
+            format!(
+                "{:<w$}",
+                format!(
+                    "State{}",
+                    sort_indicator(SortColumn::Status, sort_col, sort_ord)
+                ),
+                w = COL_STATE as usize
+            ),
+            COL_STATE,
+            false,
+        ),
+        (
+            format!(
+                "{:>w$}",
+                format!(
+                    "Thr{}",
+                    sort_indicator(SortColumn::Threads, sort_col, sort_ord)
+                ),
+                w = COL_THREADS as usize
+            ),
+            COL_THREADS,
+            true,
+        ),
+        (
+            format!("{:<w$}", "Command", w = cmd_width as usize),
+            cmd_width,
+            false,
+        ),
     ];
 
-    let text: String = cols.into_iter().map(|(s, _, _)| s).collect::<Vec<_>>().join("");
+    let text: String = cols
+        .into_iter()
+        .map(|(s, _, _)| s)
+        .collect::<Vec<_>>()
+        .join("");
     Line::from(Span::styled(text, hdr_style))
 }
 
+#[allow(clippy::too_many_arguments)]
 fn build_row_spans(
     pid: u32,
     name: &str,
@@ -177,7 +271,9 @@ fn build_row_spans(
     selected: bool,
     tree_prefix: &str,
 ) -> Line<'static> {
-    let cmd_width = width.saturating_sub(COL_PID + COL_NAME + COL_USER + COL_CPU + COL_MEM_PCT + COL_MEM + COL_STATE + COL_THREADS) as usize;
+    let cmd_width = width.saturating_sub(
+        COL_PID + COL_NAME + COL_USER + COL_CPU + COL_MEM_PCT + COL_MEM + COL_STATE + COL_THREADS,
+    ) as usize;
 
     let display_name = if tree_prefix.is_empty() {
         truncate(name, COL_NAME as usize)
@@ -187,7 +283,9 @@ fn build_row_spans(
     };
 
     let base_style = if selected {
-        Style::default().bg(Color::DarkGray).add_modifier(Modifier::BOLD)
+        Style::default()
+            .bg(Color::DarkGray)
+            .add_modifier(Modifier::BOLD)
     } else {
         Style::default()
     };
@@ -199,14 +297,40 @@ fn build_row_spans(
 
     let spans = vec![
         Span::styled(format!("{:>w$}", pid, w = COL_PID as usize), base_style),
-        Span::styled(format!("{:<w$}", display_name, w = COL_NAME as usize), base_style),
-        Span::styled(format!("{:<w$}", truncate(user, COL_USER as usize), w = COL_USER as usize), base_style),
+        Span::styled(
+            format!("{:<w$}", display_name, w = COL_NAME as usize),
+            base_style,
+        ),
+        Span::styled(
+            format!(
+                "{:<w$}",
+                truncate(user, COL_USER as usize),
+                w = COL_USER as usize
+            ),
+            base_style,
+        ),
         Span::styled(format!("{:>w$.1}", cpu, w = COL_CPU as usize), cpu_style),
-        Span::styled(format!("{:>w$.1}", mem_pct, w = COL_MEM_PCT as usize), base_style),
+        Span::styled(
+            format!("{:>w$.1}", mem_pct, w = COL_MEM_PCT as usize),
+            base_style,
+        ),
         Span::styled(format!("{:>w$}", mem_str, w = COL_MEM as usize), base_style),
-        Span::styled(format!("{:<w$}", truncate(status, COL_STATE as usize), w = COL_STATE as usize), base_style),
-        Span::styled(format!("{:>w$}", thr_str, w = COL_THREADS as usize), base_style),
-        Span::styled(format!("{:<w$}", truncate(command, cmd_width), w = cmd_width), base_style),
+        Span::styled(
+            format!(
+                "{:<w$}",
+                truncate(status, COL_STATE as usize),
+                w = COL_STATE as usize
+            ),
+            base_style,
+        ),
+        Span::styled(
+            format!("{:>w$}", thr_str, w = COL_THREADS as usize),
+            base_style,
+        ),
+        Span::styled(
+            format!("{:<w$}", truncate(command, cmd_width), w = cmd_width),
+            base_style,
+        ),
     ];
 
     Line::from(spans)
@@ -266,7 +390,11 @@ pub fn render(
     };
 
     // Header
-    let header = build_header_line(proc_collector.sort_column(), proc_collector.sort_order(), inner.width);
+    let header = build_header_line(
+        proc_collector.sort_column(),
+        proc_collector.sort_order(),
+        inner.width,
+    );
     frame.render_widget(Paragraph::new(header), header_area);
 
     // Filter bar
@@ -297,9 +425,18 @@ pub fn render(
             let selected = i == widget.selected_index;
             let p = &node.process;
             lines.push(build_row_spans(
-                p.pid, &p.name, &p.user, p.cpu_percent, p.mem_percent,
-                p.mem_bytes, &p.status, p.threads, &p.command,
-                inner.width, selected, &prefix,
+                p.pid,
+                &p.name,
+                &p.user,
+                p.cpu_percent,
+                p.mem_percent,
+                p.mem_bytes,
+                &p.status,
+                p.threads,
+                &p.command,
+                inner.width,
+                selected,
+                &prefix,
             ));
         }
     } else {
@@ -308,9 +445,18 @@ pub fn render(
         for (i, p) in processes.iter().enumerate().skip(start).take(end - start) {
             let selected = i == widget.selected_index;
             lines.push(build_row_spans(
-                p.pid, &p.name, &p.user, p.cpu_percent, p.mem_percent,
-                p.mem_bytes, &p.status, p.threads, &p.command,
-                inner.width, selected, "",
+                p.pid,
+                &p.name,
+                &p.user,
+                p.cpu_percent,
+                p.mem_percent,
+                p.mem_bytes,
+                &p.status,
+                p.threads,
+                &p.command,
+                inner.width,
+                selected,
+                "",
             ));
         }
     }

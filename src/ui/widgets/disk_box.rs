@@ -1,9 +1,9 @@
 use ratatui::{
+    Frame,
     layout::{Constraint, Direction, Layout, Rect},
     style::{Color, Style},
     text::{Line, Span},
     widgets::{Block, Borders, Paragraph, Sparkline},
-    Frame,
 };
 
 use crate::collector::disk::DiskCollector;
@@ -50,11 +50,7 @@ fn render_io_sparkline(frame: &mut Frame, area: Rect, disk: &DiskCollector) {
     if area.height > 1 {
         let spark_area = Rect::new(area.x, area.y + 1, area.width, area.height - 1);
 
-        let data: Vec<u64> = disk
-            .read_history()
-            .iter()
-            .map(|v| *v as u64)
-            .collect();
+        let data: Vec<u64> = disk.read_history().iter().map(|v| *v as u64).collect();
 
         if !data.is_empty() {
             let max_val = data.iter().copied().max().unwrap_or(1).max(1);
@@ -97,8 +93,7 @@ fn render_partition_list(frame: &mut Frame, area: Rect, disk: &DiskCollector) {
         // Suffix: " 67.2%  120/256 GiB"
         let suffix = format!(" {}  {}/{}", pct_str, used_str, total_str);
 
-        let bar_width = (area.width as usize)
-            .saturating_sub(prefix.len() + suffix.len());
+        let bar_width = (area.width as usize).saturating_sub(prefix.len() + suffix.len());
         let filled = ((pct / 100.0) * bar_width as f64) as usize;
         let empty = bar_width.saturating_sub(filled);
 

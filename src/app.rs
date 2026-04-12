@@ -35,6 +35,7 @@ pub struct App {
     pub dialog: Option<ConfirmDialog>,
 }
 
+#[allow(dead_code)]
 impl App {
     pub fn new(config: Config) -> Self {
         let hostname = hostname::get()

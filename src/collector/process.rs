@@ -41,12 +41,14 @@ const SORT_COLUMNS: [SortColumn; 7] = [
 ];
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[allow(dead_code)]
 pub enum SortOrder {
     Ascending,
     Descending,
 }
 
 #[derive(Debug, Clone)]
+#[allow(dead_code)]
 pub struct TreeNode {
     pub process: ProcessInfo,
     pub depth: usize,
@@ -63,6 +65,7 @@ pub struct ProcessCollector {
     paused: bool,
 }
 
+#[allow(dead_code)]
 impl ProcessCollector {
     pub fn new() -> Self {
         Self {
@@ -163,8 +166,7 @@ impl ProcessCollector {
         }
 
         // Find the set of PIDs present in filtered
-        let pid_set: std::collections::HashSet<u32> =
-            self.filtered.iter().map(|p| p.pid).collect();
+        let pid_set: std::collections::HashSet<u32> = self.filtered.iter().map(|p| p.pid).collect();
 
         // Roots: processes whose parent is None or whose parent is not in the filtered set
         let mut roots: Vec<&ProcessInfo> = self
@@ -227,7 +229,10 @@ impl ProcessCollector {
                 SortColumn::Pid => a.pid.cmp(&b.pid),
                 SortColumn::Name => a.name.to_lowercase().cmp(&b.name.to_lowercase()),
                 SortColumn::User => a.user.cmp(&b.user),
-                SortColumn::Cpu => a.cpu_percent.partial_cmp(&b.cpu_percent).unwrap_or(std::cmp::Ordering::Equal),
+                SortColumn::Cpu => a
+                    .cpu_percent
+                    .partial_cmp(&b.cpu_percent)
+                    .unwrap_or(std::cmp::Ordering::Equal),
                 SortColumn::Memory => a.mem_bytes.cmp(&b.mem_bytes),
                 SortColumn::Status => a.status.cmp(&b.status),
                 SortColumn::Threads => a.threads.cmp(&b.threads),
@@ -248,13 +253,12 @@ impl Collector for ProcessCollector {
             return Ok(());
         }
 
-        self.system
-            .refresh_processes(ProcessesToUpdate::All, true);
+        self.system.refresh_processes(ProcessesToUpdate::All, true);
 
         let total_memory = self.system.total_memory();
         let mut processes = Vec::new();
 
-        for (_pid, process) in self.system.processes() {
+        for process in self.system.processes().values() {
             let pid = process.pid().as_u32();
             let name = process.name().to_string_lossy().to_string();
             let cpu_percent = process.cpu_usage();
