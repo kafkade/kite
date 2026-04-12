@@ -140,6 +140,7 @@ impl App {
         }
     }
 
+    #[allow(dead_code)]
     pub fn state(&self) -> AppState {
         self.state
     }
@@ -160,6 +161,7 @@ impl App {
         self.config.update_interval_ms
     }
 
+    #[allow(dead_code)]
     pub fn config(&self) -> &Config {
         &self.config
     }

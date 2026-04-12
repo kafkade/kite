@@ -8,6 +8,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 ## [Unreleased]
 
 ### Added
+
+- Help overlay (`?`) showing all keybindings grouped by category
+- In-app settings menu (`m`) for adjusting update interval, graph symbols, and toggling panels at runtime
+- Input mode system (Normal, Filtering, Help, Menu) with mode indicator in status bar
+- Vim-style navigation (`j`/`k`) in process list and menus
+- Force refresh keybinding (`r`)
+- Status bar hint showing `? help` for discoverability
+
+## [0.2.0] - 2026-04-12
+
+### Added
+
 - Interactive process table with sortable columns (PID, name, user, CPU%, memory, status, threads)
 - Process tree view showing parent-child relationships with indented hierarchy
 - Process search and filtering with inline filter input bar
@@ -16,9 +28,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Process table keyboard navigation: scroll, select, sort column cycling, sort order toggle
 - Process detail view showing full command line, environment, and open connections
 
-## [0.1.0] - 2025-04-11
+## [0.1.0] - 2026-04-11
 
 ### Added
+
 - Real-time CPU monitoring (total + per-core usage, frequency, load averages) with braille line graphs
 - Memory and swap usage monitoring with bar gauges and history graphs
 - Disk I/O rates and filesystem usage with partition bars and I/O graphs
@@ -34,5 +47,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - 4-panel grid layout (CPU, memory, disk, network) + process table
 - Cross-platform support (Linux, macOS, Windows)
 
-[Unreleased]: https://github.com/kafkade/kite/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/kafkade/kite/compare/v0.2.0...HEAD
+[0.2.0]: https://github.com/kafkade/kite/compare/v0.1.0...v0.2.0
 [0.1.0]: https://github.com/kafkade/kite/releases/tag/v0.1.0

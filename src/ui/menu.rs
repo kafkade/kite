@@ -307,11 +307,8 @@ pub fn render(frame: &mut Frame, menu: &SettingsMenu) {
     frame.render_widget(block, menu_area);
 
     // Split inner into item rows + blank + footer
-    let mut constraints: Vec<Constraint> = menu
-        .items
-        .iter()
-        .map(|_| Constraint::Length(1))
-        .collect();
+    let mut constraints: Vec<Constraint> =
+        menu.items.iter().map(|_| Constraint::Length(1)).collect();
     constraints.push(Constraint::Min(0)); // spacer
     constraints.push(Constraint::Length(1)); // footer
 
