@@ -18,6 +18,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Konami code easter egg (↑↑↓↓←→←→BA) activating a Matrix-style theme with falling katakana rain
 - GitHub social preview image (1280×640px) with kite branding
 - SVG logo in README replacing emoji header
+- FUNDING.yml enabling GitHub Sponsor button (GitHub Sponsors, Ko-fi, Buy Me a Coffee, Patreon)
+- Support section on website with donation links prioritizing GitHub Sponsors and Ko-fi
 
 ### Changed
 
