@@ -765,6 +765,18 @@ section { padding: var(--sp-64) 0; }
 
 .support-link:hover svg { color: var(--brand-amber); }
 
+.support-link--secondary {
+  border-color: var(--border-subtle);
+  color: var(--text-faint);
+  font-size: var(--text-xs);
+  padding: var(--sp-8) var(--sp-16);
+}
+
+.support-link--secondary:hover {
+  color: var(--text-default);
+  border-color: var(--border);
+}
+
 /* ── Footer ───────────────────────────────────── */
 .footer {
   border-top: 1px solid var(--border-subtle);
