@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 260" width="200" height="260">
+  <!-- Kite — Kernel Interactive Terminal Explorer · Brand Logo -->
+  <defs>
+    <linearGradient id="kite-body" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1d8a9c"/>
+      <stop offset="100%" stop-color="#196774"/>
+    </linearGradient>
+    <linearGradient id="kite-highlight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#23a0b5"/>
+      <stop offset="100%" stop-color="#1d8a9c"/>
+    </linearGradient>
+    <linearGradient id="tail-gradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#F0941F"/>
+      <stop offset="100%" stop-color="#EF6024"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Kite body — lower half (darker) -->
+  <path d="M100 16 L160 88 L100 200 L40 88 Z" fill="url(#kite-body)"/>
+
+  <!-- Kite body — upper-right highlight -->
+  <path d="M100 16 L160 88 L100 88 Z" fill="url(#kite-highlight)"/>
+
+  <!-- Structural lines (spine + crossbar) -->
+  <line x1="100" y1="16" x2="100" y2="200" stroke="rgba(255,255,255,0.06)" stroke-width="1.2"/>
+  <line x1="40" y1="88" x2="160" y2="88" stroke="rgba(255,255,255,0.06)" stroke-width="1.2"/>
+
+  <!-- Tail string -->
+  <path d="M100 200 Q 112 218 100 230 Q 88 242 100 254"
+        stroke="url(#tail-gradient)" fill="none" stroke-width="3.5"
+        stroke-linecap="round"/>
+
+  <!-- Tail bows -->
+  <path d="M92 214 L108 214" stroke="#F0941F" stroke-width="3" stroke-linecap="round"/>
+  <path d="M93 242 L107 242" stroke="#EF6024" stroke-width="3" stroke-linecap="round"/>
+</svg>
