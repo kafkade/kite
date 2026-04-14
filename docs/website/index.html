@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kite — Kernel Interactive Terminal Explorer</title>
+  <meta name="description" content="A modern, cross-platform TUI system resource monitor written in Rust. Real-time CPU, memory, disk, network, and process monitoring in your terminal.">
+  <meta name="theme-color" content="#196774">
+  <meta property="og:title" content="Kite — Kernel Interactive Terminal Explorer">
+  <meta property="og:description" content="Real-time system monitoring in your terminal. Cross-platform, fast, written in Rust.">
+  <meta property="og:type" content="website">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Syne:wght@400;500;600;700;800&family=Work+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2 L27 13 L16 30 L5 13 Z' fill='%23196774'/%3E%3Cpath d='M16 2 L27 13 L16 13 Z' fill='%231d8a9c'/%3E%3C/svg%3E">
+
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ─── Navigation ──────────────────────────────────────── -->
+  <nav class="nav">
+    <div class="nav-inner">
+      <a href="#" class="nav-brand">
+        <svg viewBox="0 0 32 40" xmlns="http://www.w3.org/2000/svg">
+          <path d="M16 2 L28 16 L16 38 L4 16 Z" fill="#196774"/>
+          <path d="M16 2 L28 16 L16 16 Z" fill="#1d8a9c"/>
+          <line x1="4" y1="16" x2="28" y2="16" stroke="rgba(255,255,255,0.08)" stroke-width="0.8"/>
+          <line x1="16" y1="2" x2="16" y2="38" stroke="rgba(255,255,255,0.08)" stroke-width="0.8"/>
+        </svg>
+        KITE
+      </a>
+      <ul class="nav-links">
+        <li><a href="#features">Features</a></li>
+        <li><a href="#downloads">Downloads</a></li>
+        <li><a href="#quickstart">Quick Start</a></li>
+        <li>
+          <a href="https://github.com/kafkade/kite" class="nav-github" target="_blank" rel="noopener">
+            <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+            GitHub
+          </a>
+        </li>
+      </ul>
+    </div>
+  </nav>
+
+  <!-- ─── Hero ────────────────────────────────────────────── -->
+  <section class="hero">
+    <p class="hero-overline">Kernel Interactive Terminal Explorer</p>
+    <h1>Your system,<br>at a <span class="accent">glance.</span></h1>
+    <p class="hero-desc">
+      A blazing-fast TUI system monitor written in Rust. Real-time CPU, memory,
+      disk, network, and process metrics — right in your terminal.
+      Cross-platform. Keyboard-driven. Open source.
+    </p>
+    <div class="hero-actions">
+      <a href="#downloads" class="btn btn-primary">
+        <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 1a1 1 0 011 1v10.586l3.293-3.293a1 1 0 111.414 1.414l-5 5a1 1 0 01-1.414 0l-5-5a1 1 0 111.414-1.414L9 12.586V2a1 1 0 011-1z"/><path d="M3 16a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"/></svg>
+        Download v1.0.0
+      </a>
+      <a href="https://github.com/kafkade/kite" class="btn btn-secondary" target="_blank" rel="noopener">
+        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+        View on GitHub
+      </a>
+    </div>
+  </section>
+
+  <!-- ─── Terminal Preview ────────────────────────────────── -->
+  <section class="terminal-section">
+    <div class="container">
+      <div class="terminal">
+        <div class="terminal-bar">
+          <span class="terminal-dot"></span>
+          <span class="terminal-dot"></span>
+          <span class="terminal-dot"></span>
+          <span class="terminal-title">kite — 80×24</span>
+        </div>
+        <div class="terminal-body"><span class="t-teal">┌─</span> <span class="t-amber">cpu</span> <span class="t-teal">───────────────────────────────────────┬─</span> <span class="t-amber">mem</span> <span class="t-teal">──────────────┐</span>
+<span class="t-teal">│</span>                                             <span class="t-teal">│</span>                  <span class="t-teal">│</span>
+<span class="t-teal">│</span>  <span class="t-sage">▂▃▅▇█▇▅▃▂▁▂▃▅▆▇█▇▆▅▃</span>  <span class="t-bright">23.4%</span>            <span class="t-teal">│</span>  <span class="t-bar-full">████████</span><span class="t-bar-empty">░░</span>  <span class="t-bright">74%</span>  <span class="t-teal">│</span>
+<span class="t-teal">│</span>                                             <span class="t-teal">│</span>  <span class="t-sage">RAM</span> 12.1 / 16G  <span class="t-teal">│</span>
+<span class="t-teal">│</span>  <span class="t-sage">core 0</span> <span class="t-bar-full">████████</span><span class="t-bar-empty">░░</span>  <span class="t-bright">82%</span>                <span class="t-teal">│</span>                  <span class="t-teal">│</span>
+<span class="t-teal">│</span>  <span class="t-sage">core 1</span> <span class="t-bar-full">█████</span><span class="t-bar-empty">░░░░░</span>  <span class="t-bright">48%</span>                <span class="t-teal">│</span>  <span class="t-bar-full">██</span><span class="t-bar-empty">░░░░░░░░</span>  <span class="t-bright">18%</span>  <span class="t-teal">│</span>
+<span class="t-teal">│</span>  <span class="t-sage">core 2</span> <span class="t-bar-full">███████</span><span class="t-bar-empty">░░░</span>  <span class="t-bright">71%</span>                <span class="t-teal">│</span>  <span class="t-sage">Swap</span> 2.4 / 8G  <span class="t-teal">│</span>
+<span class="t-teal">│</span>  <span class="t-sage">core 3</span> <span class="t-bar-full">██████████</span>  <span class="t-orange">96%</span>                <span class="t-teal">│</span>                  <span class="t-teal">│</span>
+<span class="t-teal">├─</span> <span class="t-amber">disk</span> <span class="t-teal">──────────────────────────────────────┼─</span> <span class="t-amber">net</span> <span class="t-teal">──────────────┤</span>
+<span class="t-teal">│</span>  <span class="t-sage">/</span>     <span class="t-bar-full">███████</span><span class="t-bar-empty">░░░</span>  <span class="t-bright">74%</span>   892G / 1.2T    <span class="t-teal">│</span>  <span class="t-sage">▂▃▅▇█▇▅▃▂▁</span>    <span class="t-teal">│</span>
+<span class="t-teal">│</span>  <span class="t-sage">Read:</span>  <span class="t-bright">124.5 MB/s</span>  <span class="t-sage">Write:</span> <span class="t-bright">45.2 MB/s</span>  <span class="t-teal">│</span>  <span class="t-teal">↑</span> 2.4 MB/s      <span class="t-teal">│</span>
+<span class="t-teal">├─</span> <span class="t-amber">proc</span> <span class="t-teal">──────────────────────────────────────┤</span>  <span class="t-orange">↓</span> 15.7 MB/s     <span class="t-teal">│</span>
+<span class="t-teal">│</span>  <span class="t-dim">PID    USER    CPU%  MEM%  NAME</span>          <span class="t-teal">├──────────────────┤</span>
+<span class="t-teal">│</span>  <span class="t-sage">1842</span>   root    <span class="t-orange">12.4</span>  3.2   <span class="t-bright">firefox</span>     <span class="t-teal">│</span>  <span class="t-sage">eth0</span>  192.168.…  <span class="t-teal">│</span>
+<span class="t-teal">│</span>  <span class="t-sage">2156</span>   root     <span class="t-amber">8.1</span>  5.6   <span class="t-bright">code</span>        <span class="t-teal">│</span>  <span class="t-sage">wlan0</span> 10.0.1.…  <span class="t-teal">│</span>
+<span class="t-teal">│</span>  <span class="t-sage">3891</span>   root     4.2  1.1   <span class="t-bright">cargo</span>       <span class="t-teal">│</span>                  <span class="t-teal">│</span>
+<span class="t-teal">└──────────────────────────────────────────────┴──────────────────┘</span><span class="terminal-cursor"></span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Features ────────────────────────────────────────── -->
+  <section class="features reveal" id="features">
+    <div class="container">
+      <span class="section-label">Capabilities</span>
+      <h2>Everything you need to<br>monitor your system.</h2>
+      <p class="section-desc">
+        Real-time metrics with an interactive, keyboard-driven interface.
+        Built for engineers who live in the terminal.
+      </p>
+      <div class="features-grid">
+        <div class="feature-card">
+          <span class="feature-icon">⚡</span>
+          <h3>CPU Monitoring</h3>
+          <p>Total and per-core utilization with braille sparkline graphs, frequency tracking, and load averages — all updating in real time.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">🧠</span>
+          <h3>Memory & Swap</h3>
+          <p>RAM and swap usage with historical graphs, bar gauges, and detailed breakdowns. Watch memory pressure as it happens.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">💾</span>
+          <h3>Disk I/O</h3>
+          <p>Filesystem usage, read/write throughput rates, and mount point details. Spot I/O bottlenecks instantly.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">🌐</span>
+          <h3>Network Traffic</h3>
+          <p>Per-interface bandwidth graphs with auto-scaling units. Monitor upload and download rates across all network interfaces.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">📋</span>
+          <h3>Process Management</h3>
+          <p>Interactive process table with sorting, filtering, tree view, and signal control. Kill, stop, or renice processes directly.</p>
+        </div>
+        <div class="feature-card">
+          <span class="feature-icon">⌨️</span>
+          <h3>Keyboard-First</h3>
+          <p>Vim-style navigation, modal input, settings menu, and help overlay. Every action is a keystroke away — no mouse needed.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Downloads ───────────────────────────────────────── -->
+  <section class="downloads reveal" id="downloads">
+    <div class="container">
+      <span class="section-label">Releases</span>
+      <h2>Download Kite</h2>
+      <p class="section-desc">
+        Pre-built binaries for all major platforms. Download, extract, and run — no build tools required.
+      </p>
+      <div class="release-badge">
+        <span class="dot"></span>
+        Latest release: v1.0.0
+      </div>
+      <div class="downloads-grid">
+        <a href="https://github.com/kafkade/kite/releases/download/v1.0.0/kite-v1.0.0-x86_64-unknown-linux-gnu.tar.gz" class="download-card">
+          <div class="download-icon">🐧</div>
+          <div class="download-info">
+            <h3>Linux x86_64</h3>
+            <span>.tar.gz · glibc</span>
+          </div>
+        </a>
+        <a href="https://github.com/kafkade/kite/releases/download/v1.0.0/kite-v1.0.0-aarch64-unknown-linux-gnu.tar.gz" class="download-card">
+          <div class="download-icon">🐧</div>
+          <div class="download-info">
+            <h3>Linux ARM64</h3>
+            <span>.tar.gz · aarch64</span>
+          </div>
+        </a>
+        <a href="https://github.com/kafkade/kite/releases/download/v1.0.0/kite-v1.0.0-x86_64-apple-darwin.tar.gz" class="download-card">
+          <div class="download-icon">🍎</div>
+          <div class="download-info">
+            <h3>macOS Intel</h3>
+            <span>.tar.gz · x86_64</span>
+          </div>
+        </a>
+        <a href="https://github.com/kafkade/kite/releases/download/v1.0.0/kite-v1.0.0-aarch64-apple-darwin.tar.gz" class="download-card">
+          <div class="download-icon">🍎</div>
+          <div class="download-info">
+            <h3>macOS Apple Silicon</h3>
+            <span>.tar.gz · aarch64</span>
+          </div>
+        </a>
+        <a href="https://github.com/kafkade/kite/releases/download/v1.0.0/kite-v1.0.0-x86_64-pc-windows-msvc.zip" class="download-card">
+          <div class="download-icon">🪟</div>
+          <div class="download-info">
+            <h3>Windows x86_64</h3>
+            <span>.zip · MSVC</span>
+          </div>
+        </a>
+      </div>
+      <p class="downloads-note">
+        SHA256 checksums available for each binary. See
+        <a href="https://github.com/kafkade/kite/releases" target="_blank" rel="noopener">all releases on GitHub</a>.
+      </p>
+    </div>
+  </section>
+
+  <!-- ─── Packaging ───────────────────────────────────────── -->
+  <section class="packaging reveal" id="packaging">
+    <div class="container">
+      <span class="section-label">Package Managers</span>
+      <h2>Install with your favorite<br>package manager.</h2>
+      <p class="section-desc">
+        Native packages for all major platforms are on the roadmap. Star the repo to get notified when they land.
+      </p>
+      <div class="packaging-grid">
+        <div class="pkg-card">
+          <div class="pkg-card-header">
+            <h3>🍺 Homebrew</h3>
+            <span class="badge-soon">Soon</span>
+          </div>
+          <div class="pkg-command">brew install kafkade/tap/kite</div>
+        </div>
+        <div class="pkg-card">
+          <div class="pkg-card-header">
+            <h3>📦 Cargo</h3>
+            <span class="badge-soon">Soon</span>
+          </div>
+          <div class="pkg-command">cargo install kite-monitor</div>
+        </div>
+        <div class="pkg-card">
+          <div class="pkg-card-header">
+            <h3>🪣 Scoop</h3>
+            <span class="badge-soon">Soon</span>
+          </div>
+          <div class="pkg-command">scoop install kite</div>
+        </div>
+        <div class="pkg-card">
+          <div class="pkg-card-header">
+            <h3>🏗️ WinGet</h3>
+            <span class="badge-soon">Soon</span>
+          </div>
+          <div class="pkg-command">winget install kafkade.kite</div>
+        </div>
+        <div class="pkg-card">
+          <div class="pkg-card-header">
+            <h3>🐧 APT / DEB</h3>
+            <span class="badge-soon">Soon</span>
+          </div>
+          <div class="pkg-command">sudo apt install kite-monitor</div>
+        </div>
+        <div class="pkg-card">
+          <div class="pkg-card-header">
+            <h3>🎩 RPM / DNF</h3>
+            <span class="badge-soon">Soon</span>
+          </div>
+          <div class="pkg-command">sudo dnf install kite-monitor</div>
+        </div>
+        <div class="pkg-card">
+          <div class="pkg-card-header">
+            <h3>🏔️ AUR</h3>
+            <span class="badge-soon">Soon</span>
+          </div>
+          <div class="pkg-command">yay -S kite-monitor</div>
+        </div>
+        <div class="pkg-card">
+          <div class="pkg-card-header">
+            <h3>❄️ Nix</h3>
+            <span class="badge-soon">Soon</span>
+          </div>
+          <div class="pkg-command">nix-env -iA nixpkgs.kite-monitor</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Quick Start ─────────────────────────────────────── -->
+  <section class="quickstart reveal" id="quickstart">
+    <div class="container">
+      <span class="section-label">Get Started</span>
+      <h2>Up and running in seconds.</h2>
+      <p class="section-desc">
+        Clone the repo, build with Cargo, and launch. Requires Rust 1.85+.
+      </p>
+      <div class="quickstart-steps">
+        <div class="step">
+          <div class="step-number">Step 01</div>
+          <h3>Clone & build</h3>
+          <div class="code-block"><span class="prompt">$</span> git clone https://github.com/kafkade/kite.git
+<span class="prompt">$</span> cd kite
+<span class="prompt">$</span> cargo build --release</div>
+        </div>
+        <div class="step">
+          <div class="step-number">Step 02</div>
+          <h3>Launch</h3>
+          <div class="code-block"><span class="prompt">$</span> ./target/release/kite
+
+<span class="comment"># Or with a custom refresh interval</span>
+<span class="prompt">$</span> ./target/release/kite --interval 500</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Footer ──────────────────────────────────────────── -->
+  <footer class="footer">
+    <div class="container">
+      <div class="footer-inner">
+        <div>
+          <div class="footer-brand">
+            <svg viewBox="0 0 32 40" xmlns="http://www.w3.org/2000/svg">
+              <path d="M16 2 L28 16 L16 38 L4 16 Z" fill="#196774"/>
+              <path d="M16 2 L28 16 L16 16 Z" fill="#1d8a9c"/>
+            </svg>
+            KITE
+          </div>
+          <p class="footer-tagline">
+            Kernel Interactive Terminal Explorer.<br>
+            Built with Rust and ❤️ by <a href="https://github.com/kafkade">kafkade</a>.
+          </p>
+        </div>
+        <div class="footer-columns">
+          <div class="footer-col">
+            <h4>Project</h4>
+            <ul>
+              <li><a href="https://github.com/kafkade/kite" target="_blank" rel="noopener">GitHub</a></li>
+              <li><a href="https://github.com/kafkade/kite/releases" target="_blank" rel="noopener">Releases</a></li>
+              <li><a href="https://github.com/kafkade/kite/blob/main/CHANGELOG.md" target="_blank" rel="noopener">Changelog</a></li>
+              <li><a href="https://github.com/kafkade/kite/blob/main/docs/SPEC.md" target="_blank" rel="noopener">Specification</a></li>
+            </ul>
+          </div>
+          <div class="footer-col">
+            <h4>Community</h4>
+            <ul>
+              <li><a href="https://github.com/kafkade/kite/blob/main/CONTRIBUTING.md" target="_blank" rel="noopener">Contributing</a></li>
+              <li><a href="https://github.com/kafkade/kite/blob/main/CODE_OF_CONDUCT.md" target="_blank" rel="noopener">Code of Conduct</a></li>
+              <li><a href="https://github.com/kafkade/kite/blob/main/SECURITY.md" target="_blank" rel="noopener">Security</a></li>
+              <li><a href="https://github.com/kafkade/kite/issues" target="_blank" rel="noopener">Issues</a></li>
+            </ul>
+          </div>
+          <div class="footer-col">
+            <h4>Legal</h4>
+            <ul>
+              <li><a href="https://github.com/kafkade/kite/blob/main/LICENSE-MIT" target="_blank" rel="noopener">MIT License</a></li>
+              <li><a href="https://github.com/kafkade/kite/blob/main/LICENSE-APACHE" target="_blank" rel="noopener">Apache 2.0</a></li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span class="footer-copy">© 2025 kafkade. Dual-licensed under MIT or Apache 2.0.</span>
+        <span class="footer-made">Made with 🦀 Rust · ratatui · tokio</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ─── Scripts ─────────────────────────────────────────── -->
+  <script>
+    // Scroll-reveal animation
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.12 });
+
+    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+    // Smooth scroll for anchor links
+    document.querySelectorAll('a[href^="#"]').forEach(link => {
+      link.addEventListener('click', e => {
+        e.preventDefault();
+        const target = document.querySelector(link.getAttribute('href'));
+        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+    });
+  </script>
+</body>
+</html>
