@@ -6,31 +6,35 @@
   <title>Kite — Kernel Interactive Terminal Explorer</title>
   <meta name="description" content="A modern, cross-platform TUI system resource monitor written in Rust. Real-time CPU, memory, disk, network, and process monitoring in your terminal.">
   <meta name="theme-color" content="#196774">
-  <meta property="og:title" content="Kite — Kernel Interactive Terminal Explorer">
-  <meta property="og:description" content="Real-time system monitoring in your terminal. Cross-platform, fast, written in Rust.">
-  <meta property="og:type" content="website">
+
+  <!-- Theme init — runs before paint to prevent flash -->
+  <script>
+    (function() {
+      var m = document.cookie.match(/(?:^|;\s*)theme=(\w+)/);
+      var t = m ? m[1] : (matchMedia('(prefers-color-scheme:light)').matches ? 'light' : 'dark');
+      document.documentElement.dataset.theme = t;
+    })();
+  </script>
 
   <!-- Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500&family=Syne:wght@400;500;600;700;800&family=Work+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300..700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
 
   <!-- Favicon -->
-  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2 L27 13 L16 30 L5 13 Z' fill='%23196774'/%3E%3Cpath d='M16 2 L27 13 L16 13 Z' fill='%231d8a9c'/%3E%3C/svg%3E">
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cpath d='M16 2L27 13 16 30 5 13Z' fill='%23196774'/%3E%3Cpath d='M16 2L27 13 16 13Z' fill='%231d8a9c'/%3E%3C/svg%3E">
 
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-  <!-- ─── Navigation ──────────────────────────────────────── -->
+  <!-- ─── Nav ─────────────────────────────────────── -->
   <nav class="nav">
     <div class="nav-inner">
       <a href="#" class="nav-brand">
-        <svg viewBox="0 0 32 40" xmlns="http://www.w3.org/2000/svg">
-          <path d="M16 2 L28 16 L16 38 L4 16 Z" fill="#196774"/>
-          <path d="M16 2 L28 16 L16 16 Z" fill="#1d8a9c"/>
-          <line x1="4" y1="16" x2="28" y2="16" stroke="rgba(255,255,255,0.08)" stroke-width="0.8"/>
-          <line x1="16" y1="2" x2="16" y2="38" stroke="rgba(255,255,255,0.08)" stroke-width="0.8"/>
+        <svg viewBox="0 0 32 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <path d="M16 2L28 16 16 38 4 16Z" fill="#196774"/>
+          <path d="M16 2L28 16 16 16Z" fill="#1d8a9c"/>
         </svg>
         KITE
       </a>
@@ -38,38 +42,42 @@
         <li><a href="#features">Features</a></li>
         <li><a href="#downloads">Downloads</a></li>
         <li><a href="#quickstart">Quick Start</a></li>
-        <li>
-          <a href="https://github.com/kafkade/kite" class="nav-github" target="_blank" rel="noopener">
-            <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-            GitHub
-          </a>
-        </li>
+        <li><a href="#feedback">Feedback</a></li>
+        <li><a href="https://github.com/kafkade/kite" target="_blank" rel="noopener">GitHub</a></li>
       </ul>
+      <button class="theme-toggle" aria-label="Toggle theme" onclick="toggleTheme()">
+        <svg class="icon-sun" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><circle cx="10" cy="10" r="4"/><path d="M10 1v2m0 14v2M3.5 3.5l1.4 1.4m10.2 10.2l1.4 1.4M1 10h2m14 0h2M3.5 16.5l1.4-1.4M15.1 4.9l1.4-1.4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/></svg>
+        <svg class="icon-moon" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M17.3 13.3A8 8 0 016.7 2.7 8 8 0 1017.3 13.3z"/></svg>
+      </button>
     </div>
   </nav>
 
-  <!-- ─── Hero ────────────────────────────────────────────── -->
+  <!-- ─── Hero ────────────────────────────────────── -->
   <section class="hero">
-    <p class="hero-overline">Kernel Interactive Terminal Explorer</p>
-    <h1>Your system,<br>at a <span class="accent">glance.</span></h1>
-    <p class="hero-desc">
-      A blazing-fast TUI system monitor written in Rust. Real-time CPU, memory,
-      disk, network, and process metrics — right in your terminal.
-      Cross-platform. Keyboard-driven. Open source.
-    </p>
-    <div class="hero-actions">
-      <a href="#downloads" class="btn btn-primary">
-        <svg viewBox="0 0 20 20" fill="currentColor"><path d="M10 1a1 1 0 011 1v10.586l3.293-3.293a1 1 0 111.414 1.414l-5 5a1 1 0 01-1.414 0l-5-5a1 1 0 111.414-1.414L9 12.586V2a1 1 0 011-1z"/><path d="M3 16a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"/></svg>
-        Download v1.0.0
-      </a>
-      <a href="https://github.com/kafkade/kite" class="btn btn-secondary" target="_blank" rel="noopener">
-        <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-        View on GitHub
-      </a>
+    <div class="container">
+      <div class="hero-content">
+        <p class="hero-overline">Kernel Interactive Terminal Explorer</p>
+        <h1>Your system,<br>at a <span class="accent">glance.</span></h1>
+        <p class="hero-desc">
+          A blazing-fast TUI system monitor written in Rust. Real-time CPU,
+          memory, disk, network, and process metrics — right in your terminal.
+          Cross-platform. Keyboard-driven. Open source.
+        </p>
+        <div class="hero-actions">
+          <a href="#downloads" class="btn btn-cta">
+            <svg viewBox="0 0 20 20" fill="currentColor" aria-hidden="true"><path d="M10 1a1 1 0 011 1v10.586l3.293-3.293a1 1 0 111.414 1.414l-5 5a1 1 0 01-1.414 0l-5-5a1 1 0 111.414-1.414L9 12.586V2a1 1 0 011-1z"/><path d="M3 16a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1z"/></svg>
+            Download v1.0.0
+          </a>
+          <a href="https://github.com/kafkade/kite" class="btn btn-ghost" target="_blank" rel="noopener">
+            <svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+            View on GitHub
+          </a>
+        </div>
+      </div>
     </div>
   </section>
 
-  <!-- ─── Terminal Preview ────────────────────────────────── -->
+  <!-- ─── Terminal preview ────────────────────────── -->
   <section class="terminal-section">
     <div class="container">
       <div class="terminal">
@@ -77,241 +85,256 @@
           <span class="terminal-dot"></span>
           <span class="terminal-dot"></span>
           <span class="terminal-dot"></span>
-          <span class="terminal-title">kite — 80×24</span>
+          <span class="terminal-title">kite — terminal</span>
         </div>
-        <div class="terminal-body"><span class="t-teal">┌─</span> <span class="t-amber">cpu</span> <span class="t-teal">───────────────────────────────────────┬─</span> <span class="t-amber">mem</span> <span class="t-teal">──────────────┐</span>
-<span class="t-teal">│</span>                                             <span class="t-teal">│</span>                  <span class="t-teal">│</span>
-<span class="t-teal">│</span>  <span class="t-sage">▂▃▅▇█▇▅▃▂▁▂▃▅▆▇█▇▆▅▃</span>  <span class="t-bright">23.4%</span>            <span class="t-teal">│</span>  <span class="t-bar-full">████████</span><span class="t-bar-empty">░░</span>  <span class="t-bright">74%</span>  <span class="t-teal">│</span>
-<span class="t-teal">│</span>                                             <span class="t-teal">│</span>  <span class="t-sage">RAM</span> 12.1 / 16G  <span class="t-teal">│</span>
-<span class="t-teal">│</span>  <span class="t-sage">core 0</span> <span class="t-bar-full">████████</span><span class="t-bar-empty">░░</span>  <span class="t-bright">82%</span>                <span class="t-teal">│</span>                  <span class="t-teal">│</span>
-<span class="t-teal">│</span>  <span class="t-sage">core 1</span> <span class="t-bar-full">█████</span><span class="t-bar-empty">░░░░░</span>  <span class="t-bright">48%</span>                <span class="t-teal">│</span>  <span class="t-bar-full">██</span><span class="t-bar-empty">░░░░░░░░</span>  <span class="t-bright">18%</span>  <span class="t-teal">│</span>
-<span class="t-teal">│</span>  <span class="t-sage">core 2</span> <span class="t-bar-full">███████</span><span class="t-bar-empty">░░░</span>  <span class="t-bright">71%</span>                <span class="t-teal">│</span>  <span class="t-sage">Swap</span> 2.4 / 8G  <span class="t-teal">│</span>
-<span class="t-teal">│</span>  <span class="t-sage">core 3</span> <span class="t-bar-full">██████████</span>  <span class="t-orange">96%</span>                <span class="t-teal">│</span>                  <span class="t-teal">│</span>
-<span class="t-teal">├─</span> <span class="t-amber">disk</span> <span class="t-teal">──────────────────────────────────────┼─</span> <span class="t-amber">net</span> <span class="t-teal">──────────────┤</span>
-<span class="t-teal">│</span>  <span class="t-sage">/</span>     <span class="t-bar-full">███████</span><span class="t-bar-empty">░░░</span>  <span class="t-bright">74%</span>   892G / 1.2T    <span class="t-teal">│</span>  <span class="t-sage">▂▃▅▇█▇▅▃▂▁</span>    <span class="t-teal">│</span>
-<span class="t-teal">│</span>  <span class="t-sage">Read:</span>  <span class="t-bright">124.5 MB/s</span>  <span class="t-sage">Write:</span> <span class="t-bright">45.2 MB/s</span>  <span class="t-teal">│</span>  <span class="t-teal">↑</span> 2.4 MB/s      <span class="t-teal">│</span>
-<span class="t-teal">├─</span> <span class="t-amber">proc</span> <span class="t-teal">──────────────────────────────────────┤</span>  <span class="t-orange">↓</span> 15.7 MB/s     <span class="t-teal">│</span>
-<span class="t-teal">│</span>  <span class="t-dim">PID    USER    CPU%  MEM%  NAME</span>          <span class="t-teal">├──────────────────┤</span>
-<span class="t-teal">│</span>  <span class="t-sage">1842</span>   root    <span class="t-orange">12.4</span>  3.2   <span class="t-bright">firefox</span>     <span class="t-teal">│</span>  <span class="t-sage">eth0</span>  192.168.…  <span class="t-teal">│</span>
-<span class="t-teal">│</span>  <span class="t-sage">2156</span>   root     <span class="t-amber">8.1</span>  5.6   <span class="t-bright">code</span>        <span class="t-teal">│</span>  <span class="t-sage">wlan0</span> 10.0.1.…  <span class="t-teal">│</span>
-<span class="t-teal">│</span>  <span class="t-sage">3891</span>   root     4.2  1.1   <span class="t-bright">cargo</span>       <span class="t-teal">│</span>                  <span class="t-teal">│</span>
-<span class="t-teal">└──────────────────────────────────────────────┴──────────────────┘</span><span class="terminal-cursor"></span></div>
+        <div class="terminal-body" id="term" aria-label="Simulated kite terminal output"></div>
       </div>
     </div>
   </section>
 
-  <!-- ─── Features ────────────────────────────────────────── -->
+  <!-- ─── Features ────────────────────────────────── -->
   <section class="features reveal" id="features">
     <div class="container">
-      <span class="section-label">Capabilities</span>
-      <h2>Everything you need to<br>monitor your system.</h2>
-      <p class="section-desc">
-        Real-time metrics with an interactive, keyboard-driven interface.
-        Built for engineers who live in the terminal.
-      </p>
-      <div class="features-grid">
-        <div class="feature-card">
-          <span class="feature-icon">⚡</span>
-          <h3>CPU Monitoring</h3>
-          <p>Total and per-core utilization with braille sparkline graphs, frequency tracking, and load averages — all updating in real time.</p>
+      <div class="features-content">
+        <p class="label">Capabilities</p>
+        <h2>Built for engineers who<br>live in the terminal.</h2>
+        <p class="section-intro">
+          Real-time metrics with an interactive, keyboard-driven interface.
+          No GUI needed — everything runs right where you work.
+        </p>
+
+        <div class="feature-highlight">
+          <h3>Real-time system metrics</h3>
+          <p>
+            CPU utilization with per-core breakdown and braille sparkline graphs.
+            Memory and swap with historical trends. Disk I/O throughput and filesystem
+            usage. Network bandwidth per interface with auto-scaling units.
+          </p>
         </div>
-        <div class="feature-card">
-          <span class="feature-icon">🧠</span>
-          <h3>Memory & Swap</h3>
-          <p>RAM and swap usage with historical graphs, bar gauges, and detailed breakdowns. Watch memory pressure as it happens.</p>
+
+        <div class="feature-highlight">
+          <h3>Interactive process management</h3>
+          <p>
+            Sort, filter, and search through every running process. Tree view for
+            parent-child relationships. Send signals directly — SIGTERM, SIGKILL,
+            SIGSTOP, SIGCONT. Renice priorities. Confirmation dialogs for destructive actions.
+          </p>
         </div>
-        <div class="feature-card">
-          <span class="feature-icon">💾</span>
-          <h3>Disk I/O</h3>
-          <p>Filesystem usage, read/write throughput rates, and mount point details. Spot I/O bottlenecks instantly.</p>
-        </div>
-        <div class="feature-card">
-          <span class="feature-icon">🌐</span>
-          <h3>Network Traffic</h3>
-          <p>Per-interface bandwidth graphs with auto-scaling units. Monitor upload and download rates across all network interfaces.</p>
-        </div>
-        <div class="feature-card">
-          <span class="feature-icon">📋</span>
-          <h3>Process Management</h3>
-          <p>Interactive process table with sorting, filtering, tree view, and signal control. Kill, stop, or renice processes directly.</p>
-        </div>
-        <div class="feature-card">
-          <span class="feature-icon">⌨️</span>
-          <h3>Keyboard-First</h3>
-          <p>Vim-style navigation, modal input, settings menu, and help overlay. Every action is a keystroke away — no mouse needed.</p>
-        </div>
+
+        <dl class="feature-grid">
+          <div>
+            <dt>Keyboard-first</dt>
+            <dd>Vim-style navigation, modal input modes, and a help overlay showing every keybinding. Every action is a keystroke away.</dd>
+          </div>
+          <div>
+            <dt>Configurable</dt>
+            <dd>TOML config, CLI overrides, and a runtime settings menu. Adjust update interval, graph style, and panel visibility without restarting.</dd>
+          </div>
+          <div>
+            <dt>Cross-platform</dt>
+            <dd>Native binaries for Linux, macOS, and Windows. Same interface everywhere. Platform-specific APIs for maximum accuracy.</dd>
+          </div>
+          <div>
+            <dt>Built with Rust</dt>
+            <dd>Async runtime on tokio, zero-cost abstractions, and type-safe collectors. Fast startup, low memory footprint, crash-free by design.</dd>
+          </div>
+        </dl>
       </div>
     </div>
   </section>
 
-  <!-- ─── Downloads ───────────────────────────────────────── -->
+  <!-- ─── Downloads ───────────────────────────────── -->
   <section class="downloads reveal" id="downloads">
     <div class="container">
-      <span class="section-label">Releases</span>
+      <p class="label">Releases</p>
       <h2>Download Kite</h2>
-      <p class="section-desc">
-        Pre-built binaries for all major platforms. Download, extract, and run — no build tools required.
+      <p class="section-intro">
+        Pre-built binaries for all major platforms.
+        Download, extract, and run — no build tools required.
       </p>
-      <div class="release-badge">
-        <span class="dot"></span>
-        Latest release: v1.0.0
+
+      <div class="release-tag">
+        <span class="release-dot"></span>
+        Latest: v1.0.0
       </div>
+
       <div class="downloads-grid">
-        <a href="https://github.com/kafkade/kite/releases/download/v1.0.0/kite-v1.0.0-x86_64-unknown-linux-gnu.tar.gz" class="download-card">
-          <div class="download-icon">🐧</div>
-          <div class="download-info">
-            <h3>Linux x86_64</h3>
-            <span>.tar.gz · glibc</span>
-          </div>
-        </a>
-        <a href="https://github.com/kafkade/kite/releases/download/v1.0.0/kite-v1.0.0-aarch64-unknown-linux-gnu.tar.gz" class="download-card">
-          <div class="download-icon">🐧</div>
-          <div class="download-info">
-            <h3>Linux ARM64</h3>
-            <span>.tar.gz · aarch64</span>
-          </div>
-        </a>
-        <a href="https://github.com/kafkade/kite/releases/download/v1.0.0/kite-v1.0.0-x86_64-apple-darwin.tar.gz" class="download-card">
-          <div class="download-icon">🍎</div>
-          <div class="download-info">
-            <h3>macOS Intel</h3>
-            <span>.tar.gz · x86_64</span>
-          </div>
-        </a>
-        <a href="https://github.com/kafkade/kite/releases/download/v1.0.0/kite-v1.0.0-aarch64-apple-darwin.tar.gz" class="download-card">
-          <div class="download-icon">🍎</div>
-          <div class="download-info">
-            <h3>macOS Apple Silicon</h3>
-            <span>.tar.gz · aarch64</span>
-          </div>
-        </a>
-        <a href="https://github.com/kafkade/kite/releases/download/v1.0.0/kite-v1.0.0-x86_64-pc-windows-msvc.zip" class="download-card">
-          <div class="download-icon">🪟</div>
-          <div class="download-info">
-            <h3>Windows x86_64</h3>
-            <span>.zip · MSVC</span>
-          </div>
-        </a>
+        <div class="os-group">
+          <div class="os-name">Linux</div>
+          <a href="https://github.com/kafkade/kite/releases/download/v1.0.0/kite-v1.0.0-x86_64-unknown-linux-gnu.tar.gz" class="dl-link">
+            <span>x86_64</span>
+            <span class="dl-ext">.tar.gz</span>
+          </a>
+          <a href="https://github.com/kafkade/kite/releases/download/v1.0.0/kite-v1.0.0-aarch64-unknown-linux-gnu.tar.gz" class="dl-link">
+            <span>ARM64 (aarch64)</span>
+            <span class="dl-ext">.tar.gz</span>
+          </a>
+        </div>
+        <div class="os-group">
+          <div class="os-name">macOS</div>
+          <a href="https://github.com/kafkade/kite/releases/download/v1.0.0/kite-v1.0.0-x86_64-apple-darwin.tar.gz" class="dl-link">
+            <span>Intel (x86_64)</span>
+            <span class="dl-ext">.tar.gz</span>
+          </a>
+          <a href="https://github.com/kafkade/kite/releases/download/v1.0.0/kite-v1.0.0-aarch64-apple-darwin.tar.gz" class="dl-link">
+            <span>Apple Silicon</span>
+            <span class="dl-ext">.tar.gz</span>
+          </a>
+        </div>
+        <div class="os-group">
+          <div class="os-name">Windows</div>
+          <a href="https://github.com/kafkade/kite/releases/download/v1.0.0/kite-v1.0.0-x86_64-pc-windows-msvc.zip" class="dl-link">
+            <span>x86_64 (MSVC)</span>
+            <span class="dl-ext">.zip</span>
+          </a>
+        </div>
       </div>
-      <p class="downloads-note">
-        SHA256 checksums available for each binary. See
-        <a href="https://github.com/kafkade/kite/releases" target="_blank" rel="noopener">all releases on GitHub</a>.
+
+      <p class="downloads-footer">
+        SHA256 checksums included with each release.
+        <a href="https://github.com/kafkade/kite/releases" target="_blank" rel="noopener">All releases on GitHub →</a>
       </p>
     </div>
   </section>
 
-  <!-- ─── Packaging ───────────────────────────────────────── -->
+  <!-- ─── Packaging ───────────────────────────────── -->
   <section class="packaging reveal" id="packaging">
     <div class="container">
-      <span class="section-label">Package Managers</span>
+      <p class="label">Package managers</p>
       <h2>Install with your favorite<br>package manager.</h2>
-      <p class="section-desc">
-        Native packages for all major platforms are on the roadmap. Star the repo to get notified when they land.
+      <p class="section-intro">
+        Native packages are on the roadmap.
+        Star the repo to get notified when they land.
       </p>
-      <div class="packaging-grid">
-        <div class="pkg-card">
-          <div class="pkg-card-header">
-            <h3>🍺 Homebrew</h3>
-            <span class="badge-soon">Soon</span>
-          </div>
-          <div class="pkg-command">brew install kafkade/tap/kite</div>
+
+      <div class="pkg-grid">
+        <div class="pkg-item">
+          <span class="pkg-name">Homebrew</span>
+          <span class="badge-soon">Soon</span>
         </div>
-        <div class="pkg-card">
-          <div class="pkg-card-header">
-            <h3>📦 Cargo</h3>
-            <span class="badge-soon">Soon</span>
-          </div>
-          <div class="pkg-command">cargo install kite-monitor</div>
+        <div class="pkg-item">
+          <span class="pkg-name">Cargo</span>
+          <span class="badge-soon">Soon</span>
         </div>
-        <div class="pkg-card">
-          <div class="pkg-card-header">
-            <h3>🪣 Scoop</h3>
-            <span class="badge-soon">Soon</span>
-          </div>
-          <div class="pkg-command">scoop install kite</div>
+        <div class="pkg-item">
+          <span class="pkg-name">Scoop</span>
+          <span class="badge-soon">Soon</span>
         </div>
-        <div class="pkg-card">
-          <div class="pkg-card-header">
-            <h3>🏗️ WinGet</h3>
-            <span class="badge-soon">Soon</span>
-          </div>
-          <div class="pkg-command">winget install kafkade.kite</div>
+        <div class="pkg-item">
+          <span class="pkg-name">WinGet</span>
+          <span class="badge-soon">Soon</span>
         </div>
-        <div class="pkg-card">
-          <div class="pkg-card-header">
-            <h3>🐧 APT / DEB</h3>
-            <span class="badge-soon">Soon</span>
-          </div>
-          <div class="pkg-command">sudo apt install kite-monitor</div>
+        <div class="pkg-item">
+          <span class="pkg-name">APT / DEB</span>
+          <span class="badge-soon">Soon</span>
         </div>
-        <div class="pkg-card">
-          <div class="pkg-card-header">
-            <h3>🎩 RPM / DNF</h3>
-            <span class="badge-soon">Soon</span>
-          </div>
-          <div class="pkg-command">sudo dnf install kite-monitor</div>
+        <div class="pkg-item">
+          <span class="pkg-name">RPM / DNF</span>
+          <span class="badge-soon">Soon</span>
         </div>
-        <div class="pkg-card">
-          <div class="pkg-card-header">
-            <h3>🏔️ AUR</h3>
-            <span class="badge-soon">Soon</span>
-          </div>
-          <div class="pkg-command">yay -S kite-monitor</div>
+        <div class="pkg-item">
+          <span class="pkg-name">AUR</span>
+          <span class="badge-soon">Soon</span>
         </div>
-        <div class="pkg-card">
-          <div class="pkg-card-header">
-            <h3>❄️ Nix</h3>
-            <span class="badge-soon">Soon</span>
-          </div>
-          <div class="pkg-command">nix-env -iA nixpkgs.kite-monitor</div>
+        <div class="pkg-item">
+          <span class="pkg-name">Nix</span>
+          <span class="badge-soon">Soon</span>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ─── Quick Start ─────────────────────────────────────── -->
+  <!-- ─── Quick start ─────────────────────────────── -->
   <section class="quickstart reveal" id="quickstart">
     <div class="container">
-      <span class="section-label">Get Started</span>
+      <p class="label">Get started</p>
       <h2>Up and running in seconds.</h2>
-      <p class="section-desc">
-        Clone the repo, build with Cargo, and launch. Requires Rust 1.85+.
+      <p class="section-intro">
+        Clone, build with Cargo, and launch. Requires Rust 1.85+.
       </p>
+
       <div class="quickstart-steps">
         <div class="step">
-          <div class="step-number">Step 01</div>
-          <h3>Clone & build</h3>
+          <div class="step-num">Step 01</div>
+          <h3>Clone &amp; build</h3>
           <div class="code-block"><span class="prompt">$</span> git clone https://github.com/kafkade/kite.git
 <span class="prompt">$</span> cd kite
 <span class="prompt">$</span> cargo build --release</div>
         </div>
         <div class="step">
-          <div class="step-number">Step 02</div>
+          <div class="step-num">Step 02</div>
           <h3>Launch</h3>
           <div class="code-block"><span class="prompt">$</span> ./target/release/kite
 
-<span class="comment"># Or with a custom refresh interval</span>
+<span class="comment"># Custom refresh interval</span>
 <span class="prompt">$</span> ./target/release/kite --interval 500</div>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- ─── Footer ──────────────────────────────────────────── -->
+  <!-- ─── Feedback ──────────────────────────────────── -->
+  <section class="feedback reveal" id="feedback">
+    <div class="container">
+      <p class="label">Feedback</p>
+      <h2>Help shape Kite.</h2>
+      <p class="section-intro">
+        Found a bug? Have an idea? We track everything on GitHub Issues.
+        Pick the right template and we'll take it from there.
+      </p>
+
+      <div class="feedback-actions">
+        <a href="https://github.com/kafkade/kite/issues/new?template=bug_report.yml" class="feedback-card" target="_blank" rel="noopener">
+          <div class="feedback-card-icon" aria-hidden="true">
+            <svg viewBox="0 0 20 20" fill="currentColor" width="20" height="20"><path d="M10 2a8 8 0 100 16 8 8 0 000-16zm0 14.5a6.5 6.5 0 110-13 6.5 6.5 0 010 13zM9 6h2v5H9V6zm0 6h2v2H9v-2z"/></svg>
+          </div>
+          <div>
+            <div class="feedback-card-title">Report a bug</div>
+            <div class="feedback-card-desc">Something broken or behaving unexpectedly? Let us know.</div>
+          </div>
+          <svg class="feedback-arrow" viewBox="0 0 20 20" fill="currentColor" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M5.22 14.78a.75.75 0 010-1.06l7.22-7.22H8.75a.75.75 0 010-1.5h5.5a.75.75 0 01.75.75v5.5a.75.75 0 01-1.5 0V7.06l-7.22 7.22a.75.75 0 01-1.06 0z"/></svg>
+        </a>
+
+        <a href="https://github.com/kafkade/kite/issues/new?template=feature_request.yml" class="feedback-card" target="_blank" rel="noopener">
+          <div class="feedback-card-icon" aria-hidden="true">
+            <svg viewBox="0 0 20 20" fill="currentColor" width="20" height="20"><path d="M10 2a1 1 0 011 1v6h6a1 1 0 110 2h-6v6a1 1 0 11-2 0v-6H3a1 1 0 110-2h6V3a1 1 0 011-1z"/></svg>
+          </div>
+          <div>
+            <div class="feedback-card-title">Request a feature</div>
+            <div class="feedback-card-desc">Have an idea for a new metric, view, or integration?</div>
+          </div>
+          <svg class="feedback-arrow" viewBox="0 0 20 20" fill="currentColor" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M5.22 14.78a.75.75 0 010-1.06l7.22-7.22H8.75a.75.75 0 010-1.5h5.5a.75.75 0 01.75.75v5.5a.75.75 0 01-1.5 0V7.06l-7.22 7.22a.75.75 0 01-1.06 0z"/></svg>
+        </a>
+
+        <a href="https://github.com/kafkade/kite/issues" class="feedback-card" target="_blank" rel="noopener">
+          <div class="feedback-card-icon" aria-hidden="true">
+            <svg viewBox="0 0 20 20" fill="currentColor" width="20" height="20"><path d="M2 5a2 2 0 012-2h12a2 2 0 012 2v8a2 2 0 01-2 2H7.414l-3.707 3.707A1 1 0 012 18V5zm3 3a1 1 0 000 2h8a1 1 0 100-2H5zm0 3a1 1 0 100 2h4a1 1 0 100-2H5z"/></svg>
+          </div>
+          <div>
+            <div class="feedback-card-title">Browse open issues</div>
+            <div class="feedback-card-desc">See what's being worked on, vote on issues, or join a discussion.</div>
+          </div>
+          <svg class="feedback-arrow" viewBox="0 0 20 20" fill="currentColor" width="16" height="16" aria-hidden="true"><path fill-rule="evenodd" d="M5.22 14.78a.75.75 0 010-1.06l7.22-7.22H8.75a.75.75 0 010-1.5h5.5a.75.75 0 01.75.75v5.5a.75.75 0 01-1.5 0V7.06l-7.22 7.22a.75.75 0 01-1.06 0z"/></svg>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ─── Footer ──────────────────────────────────── -->
   <footer class="footer">
     <div class="container">
       <div class="footer-inner">
         <div>
           <div class="footer-brand">
-            <svg viewBox="0 0 32 40" xmlns="http://www.w3.org/2000/svg">
-              <path d="M16 2 L28 16 L16 38 L4 16 Z" fill="#196774"/>
-              <path d="M16 2 L28 16 L16 16 Z" fill="#1d8a9c"/>
+            <svg viewBox="0 0 32 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+              <path d="M16 2L28 16 16 38 4 16Z" fill="#196774"/>
+              <path d="M16 2L28 16 16 16Z" fill="#1d8a9c"/>
             </svg>
             KITE
           </div>
           <p class="footer-tagline">
             Kernel Interactive Terminal Explorer.<br>
-            Built with Rust and ❤️ by <a href="https://github.com/kafkade">kafkade</a>.
+            Built with Rust by <a href="https://github.com/kafkade">kafkade</a>.
           </p>
         </div>
         <div class="footer-columns">
@@ -343,34 +366,207 @@
         </div>
       </div>
       <div class="footer-bottom">
-        <span class="footer-copy">© 2025 kafkade. Dual-licensed under MIT or Apache 2.0.</span>
-        <span class="footer-made">Made with 🦀 Rust · ratatui · tokio</span>
+        <span>&copy; <span id="year"></span> kafkade. Dual-licensed MIT or Apache 2.0.</span>
+        <span>Made with Rust &middot; ratatui &middot; tokio</span>
       </div>
     </div>
   </footer>
 
-  <!-- ─── Scripts ─────────────────────────────────────────── -->
+  <!-- ─── Scripts ─────────────────────────────────── -->
   <script>
-    // Scroll-reveal animation
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach(entry => {
-        if (entry.isIntersecting) {
-          entry.target.classList.add('visible');
-          observer.unobserve(entry.target);
+    /* Theme toggle */
+    function toggleTheme() {
+      var next = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+      document.documentElement.dataset.theme = next;
+      document.cookie = 'theme=' + next + ';path=/;max-age=31536000;SameSite=Lax';
+    }
+
+    /* Dynamic year */
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    /* Scroll reveal */
+    var observer = new IntersectionObserver(function(entries) {
+      entries.forEach(function(e) {
+        if (e.isIntersecting) {
+          e.target.classList.add('visible');
+          observer.unobserve(e.target);
         }
       });
-    }, { threshold: 0.12 });
+    }, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+    document.querySelectorAll('.reveal').forEach(function(el) { observer.observe(el); });
 
-    document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
-
-    // Smooth scroll for anchor links
-    document.querySelectorAll('a[href^="#"]').forEach(link => {
-      link.addEventListener('click', e => {
+    /* Smooth scroll */
+    document.querySelectorAll('a[href^="#"]').forEach(function(a) {
+      a.addEventListener('click', function(e) {
         e.preventDefault();
-        const target = document.querySelector(link.getAttribute('href'));
-        if (target) target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        var t = document.querySelector(a.getAttribute('href'));
+        if (t) t.scrollIntoView({ behavior: 'smooth', block: 'start' });
       });
     });
+
+    /* Terminal art — generated via JS to guarantee alignment */
+    (function() {
+      var W = 50; // inner width between borders
+      var teal = 'tc', amber = 'ta', bright = 'tb', dim = 'td';
+
+      function s(cls, text) { return '<span class="' + cls + '">' + text + '</span>'; }
+      function visLen(html) { return html.replace(/<[^>]*>/g, '').length; }
+      function pad(html, len) {
+        var need = len - visLen(html);
+        return need > 0 ? html + Array(need + 1).join(' ') : html;
+      }
+      function hdr(label, ch) {
+        var inner = ' ' + label + ' ';
+        return s(teal, ch) + s(teal, inner) + s(teal, Array(W - inner.length + 1).join('─')) + s(teal, ch === '┌' ? '┐' : '┤');
+      }
+      function row(content) {
+        return s(teal, '│') + pad(content, W) + s(teal, '│');
+      }
+
+      var lines = [
+        hdr('CPU', '┌'),
+        row(' ' + s(teal, '▁▂▄▆█▇▅▃▁▂▃▅▇█▇▅▃▂▁') + '  ' + s(bright, '23.4%') + '   8 cores  3.4 GHz'),
+        row(' ' + s(dim, 'c0') + ' ' + s(teal, '████████') + s(dim, '░░') + ' ' + s(bright, '82%') + '   ' + s(dim, 'c2') + ' ' + s(teal, '███████') + s(dim, '░░░') + ' ' + s(bright, '71%')),
+        row(' ' + s(dim, 'c1') + ' ' + s(teal, '█████') + s(dim, '░░░░░') + ' ' + s(bright, '48%') + '   ' + s(dim, 'c3') + ' ' + s(teal, '██████████') + ' ' + s(amber, '96%')),
+        s(teal, '├') + s(teal, ' MEM ') + s(teal, Array(W - 4).join('─')) + s(teal, '┤'),
+        row(' RAM  ' + s(teal, '████████████████') + s(dim, '░░░░') + '  ' + s(bright, '74%') + '  12.1/16G'),
+        row(' Swap ' + s(teal, '████') + s(dim, '░░░░░░░░░░░░░░░░') + '  ' + s(bright, '18%') + '   2.4/8G'),
+        s(teal, '├') + s(teal, ' DISK ') + s(teal, Array(W - 5).join('─')) + s(teal, '┤'),
+        row(' /  ' + s(teal, '████████') + s(dim, '░░░') + ' ' + s(bright, '74%') + '   892G / 1.2T'),
+        row(' R: ' + s(bright, '124 MB/s') + '       W: ' + s(bright, '45.2 MB/s')),
+        s(teal, '├') + s(teal, ' NET ') + s(teal, Array(W - 4).join('─')) + s(teal, '┤'),
+        row(' eth0  ' + s(teal, '↑') + ' ' + s(bright, '2.4 MB/s') + '   ' + s(amber, '↓') + ' ' + s(bright, '15.7 MB/s')),
+        s(teal, '├') + s(teal, ' PROC ') + s(teal, Array(W - 5).join('─')) + s(teal, '┤'),
+        row(' ' + s(dim, 'PID   USER   CPU%  MEM%  NAME')),
+        row(' 1842  root   ' + s(amber, '12.4') + '   3.2  ' + s(bright, 'firefox')),
+        row(' 2156  root    ' + s(amber, '8.1') + '   5.6  ' + s(bright, 'code')),
+        row(' 3891  root    4.2   1.1  ' + s(bright, 'cargo')),
+        s(teal, '└') + s(teal, Array(W + 1).join('─')) + s(teal, '┘'),
+      ];
+
+      document.getElementById('term').innerHTML = lines.join('\n') + s('terminal-cursor', '');
+    })();
+
+    /* ── Konami Code → Matrix Mode ─────────────── */
+    (function() {
+      var KONAMI = [38,38,40,40,37,39,37,39,66,65]; // ↑↑↓↓←→←→BA
+      var pos = 0;
+      var canvas, ctx, columns, drops, chars, animId, active = false;
+
+      // Matrix glyphs: half-width katakana + digits + latin
+      var GLYPHS = 'アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+
+      document.addEventListener('keydown', function(e) {
+        if (e.keyCode === KONAMI[pos]) {
+          pos++;
+          if (pos === KONAMI.length) {
+            pos = 0;
+            toggleMatrix();
+          }
+        } else {
+          pos = 0;
+        }
+      });
+
+      function toggleMatrix() {
+        if (active) {
+          deactivateMatrix();
+        } else {
+          activateMatrix();
+        }
+      }
+
+      function activateMatrix() {
+        active = true;
+        document.documentElement.dataset.theme = 'matrix';
+        document.body.style.background = '#000a00';
+
+        // Create canvas
+        canvas = document.createElement('canvas');
+        canvas.className = 'matrix-rain';
+        document.body.appendChild(canvas);
+        ctx = canvas.getContext('2d');
+
+        function resize() {
+          canvas.width = window.innerWidth;
+          canvas.height = window.innerHeight;
+          var fontSize = 14;
+          columns = Math.floor(canvas.width / fontSize);
+          drops = [];
+          for (var i = 0; i < columns; i++) {
+            drops[i] = -(Math.random() * 40 | 0); // staggered start
+          }
+        }
+        resize();
+        window.addEventListener('resize', resize);
+        canvas._resize = resize;
+
+        // Fade in
+        requestAnimationFrame(function() {
+          canvas.classList.add('active');
+        });
+
+        // Animate
+        var fontSize = 14;
+        function draw() {
+          // Semi-transparent black overlay for trail effect
+          ctx.fillStyle = 'rgba(0, 10, 0, 0.06)';
+          ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+          ctx.font = fontSize + 'px monospace';
+
+          for (var i = 0; i < columns; i++) {
+            if (drops[i] < 0) {
+              drops[i]++;
+              continue;
+            }
+
+            var ch = GLYPHS[Math.random() * GLYPHS.length | 0];
+            var y = drops[i] * fontSize;
+
+            // Head of the column is brighter
+            if (Math.random() > 0.15) {
+              ctx.fillStyle = '#00ff41';
+              ctx.globalAlpha = 0.7 + Math.random() * 0.3;
+            } else {
+              ctx.fillStyle = '#33ff66';
+              ctx.globalAlpha = 1;
+            }
+            ctx.fillText(ch, i * fontSize, y);
+            ctx.globalAlpha = 1;
+
+            // Reset drop when it reaches bottom (with randomness)
+            if (y > canvas.height && Math.random() > 0.975) {
+              drops[i] = 0;
+            }
+            drops[i]++;
+          }
+
+          animId = requestAnimationFrame(draw);
+        }
+        draw();
+      }
+
+      function deactivateMatrix() {
+        active = false;
+        cancelAnimationFrame(animId);
+
+        if (canvas) {
+          canvas.classList.remove('active');
+          window.removeEventListener('resize', canvas._resize);
+          setTimeout(function() {
+            if (canvas.parentNode) canvas.parentNode.removeChild(canvas);
+            canvas = null;
+          }, 800);
+        }
+
+        // Restore previous theme from cookie or system preference
+        var m = document.cookie.match(/(?:^|;\s*)theme=(\w+)/);
+        var t = m && m[1] !== 'matrix' ? m[1] : (matchMedia('(prefers-color-scheme:light)').matches ? 'light' : 'dark');
+        document.documentElement.dataset.theme = t;
+        document.body.style.background = '';
+      }
+    })();
   </script>
 </body>
 </html>
