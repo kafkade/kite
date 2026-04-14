@@ -63,12 +63,12 @@
   --border-subtle: oklch(18% 0.005 65);
 
   --text-strong: oklch(92% 0.005 65);
-  --text-default: oklch(78% 0.006 65);
-  --text-subtle: oklch(56% 0.013 190);
-  --text-faint: oklch(36% 0.006 65);
+  --text-default: oklch(80% 0.006 65);
+  --text-subtle: oklch(64% 0.013 190);
+  --text-faint: oklch(52% 0.006 65);
 
-  --accent-text: oklch(58% 0.08 210);
-  --accent-hover: oklch(52% 0.09 210);
+  --accent-text: oklch(62% 0.08 210);
+  --accent-hover: oklch(56% 0.09 210);
 
   --cta-bg: oklch(70% 0.16 62);
   --cta-bg-hover: oklch(74% 0.17 62);
@@ -537,7 +537,7 @@ section { padding: var(--sp-64) 0; }
 .downloads-footer {
   margin-top: var(--sp-24);
   font-size: var(--text-sm);
-  color: var(--text-faint);
+  color: var(--text-subtle);
 }
 
 .downloads-footer a {
@@ -647,7 +647,7 @@ section { padding: var(--sp-64) 0; }
   user-select: none;
 }
 
-.code-block .comment { color: oklch(48% 0.008 65); }
+.code-block .comment { color: oklch(54% 0.008 65); }
 
 /* ── Feedback ──────────────────────────────────── */
 .feedback { background: var(--bg-base); }
@@ -751,7 +751,7 @@ section { padding: var(--sp-64) 0; }
 .footer-brand svg { width: 18px; height: auto; }
 
 .footer-tagline {
-  color: var(--text-faint);
+  color: var(--text-subtle);
   font-size: var(--text-sm);
   line-height: 1.6;
   max-width: 260px;
@@ -768,7 +768,7 @@ section { padding: var(--sp-64) 0; }
   font-weight: 600;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--text-faint);
+  color: var(--text-subtle);
   margin-bottom: var(--sp-12);
 }
 
@@ -794,7 +794,7 @@ section { padding: var(--sp-64) 0; }
   align-items: center;
   gap: var(--sp-16);
   font-size: var(--text-xs);
-  color: var(--text-faint);
+  color: var(--text-subtle);
 }
 
 /* ── Animations ───────────────────────────────── */

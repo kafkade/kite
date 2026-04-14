@@ -17,13 +17,13 @@ via the native GitHub integration at `kite.kafkade.com`.
    | **Project name**     | `kite`           |
    | **Production branch**| `main`           |
    | **Build command**    | *(leave empty)*  |
-   | **Build output directory** | `docs/website` |
+   | **Build output directory** | *(leave empty)* |
    | **Root directory**   | `/`              |
 
 5. Click **Save and Deploy**
 
-> Since this is a static site with no build step, leave the build command
-> empty. Cloudflare will serve the contents of `docs/website/` directly.
+> The `wrangler.jsonc` file in the repo root tells Cloudflare to serve
+> `docs/website/` as a static assets directory. No build command is needed.
 
 ### 2. Configure the custom domain
 
