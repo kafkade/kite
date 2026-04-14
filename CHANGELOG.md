@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Project website at `kite.kafkade.com` with brand kit, downloads, and feature overview
+- Light and dark theme toggle with cookie persistence
+- Interactive terminal mockup showing kite's dashboard output
+- Releases section with download links for all platforms (Linux, macOS, Windows)
+- Package manager section (Homebrew, Cargo, Scoop, WinGet, APT, RPM, AUR, Nix — coming soon)
+- Feedback section linking to GitHub issue templates for bug reports and feature requests
+- Konami code easter egg (↑↑↓↓←→←→BA) activating a Matrix-style theme with falling katakana rain
+
 ## [1.0.0] - 2026-04-12
 
 First stable release. 🎉

@@ -1,4 +1,8 @@
-# 🪁 Kite
+<p align="center">
+  <img src="docs/website/logo.svg" alt="kite logo" width="80" height="100">
+</p>
+
+<h1 align="center">kite</h1>
 
 [![CI](https://github.com/kafkade/kite/actions/workflows/ci.yml/badge.svg)](https://github.com/kafkade/kite/actions/workflows/ci.yml)
 [![License: MIT OR Apache-2.0](https://img.shields.io/crates/l/kite)](LICENSE-MIT)
@@ -15,6 +19,7 @@ Kite gives you a real-time, interactive terminal dashboard for CPU, memory, disk
 ## Features
 
 ### Core Dashboard
+
 - Real-time CPU monitoring (total + per-core, frequency, load averages) with braille graphs
 - Memory & swap usage with historical graphs and bar gauges
 - Disk I/O rates and filesystem usage
@@ -22,12 +27,14 @@ Kite gives you a real-time, interactive terminal dashboard for CPU, memory, disk
 - 5-panel layout (CPU, memory, disk, network, process table)
 
 ### Process Management
+
 - Interactive process table (sort, filter, search, tree view)
 - Process signals (SIGTERM, SIGKILL, SIGSTOP, SIGCONT) and renice
 - Confirmation dialogs for destructive actions
 - Vim-style navigation (`j`/`k`) and keyboard-driven workflow
 
 ### UI & Configuration
+
 - Help overlay (`?`) showing all keybindings
 - In-app settings menu (`m`) — adjust update interval, graph symbols, toggle panels at runtime
 - TOML-based configuration with CLI argument overrides
@@ -35,6 +42,7 @@ Kite gives you a real-time, interactive terminal dashboard for CPU, memory, disk
 - Input mode system with status bar indicators
 
 ### Planned
+
 - **Phase 2**: GPU monitoring, hardware sensors, theming engine
 - **Phase 3**: Docker/Kubernetes container monitoring, alerts
 - **Phase 4**: SSH remote monitoring, Prometheus export
@@ -70,20 +78,20 @@ Options:
 
 ### Keyboard Shortcuts
 
-| Key | Action |
-|-----|--------|
-| `q` / `Ctrl+C` | Quit |
-| `?` | Toggle help overlay |
-| `m` | Toggle settings menu |
-| `r` | Force refresh |
-| `↑`/`↓` or `j`/`k` | Scroll process list |
-| `←`/`→` | Change sort column |
-| `Space` | Pause/unpause process updates |
-| `/` | Filter processes |
-| `t` | Toggle tree view |
-| `K` | Kill selected process |
-| `PgUp`/`PgDn` | Page scroll |
-| `Esc` | Close overlay / clear filter |
+| Key                | Action                        |
+| ------------------ | ----------------------------- |
+| `q` / `Ctrl+C`     | Quit                          |
+| `?`                | Toggle help overlay           |
+| `m`                | Toggle settings menu          |
+| `r`                | Force refresh                 |
+| `↑`/`↓` or `j`/`k` | Scroll process list           |
+| `←`/`→`            | Change sort column            |
+| `Space`            | Pause/unpause process updates |
+| `/`                | Filter processes              |
+| `t`                | Toggle tree view              |
+| `K`                | Kill selected process         |
+| `PgUp`/`PgDn`      | Page scroll                   |
+| `Esc`              | Close overlay / clear filter  |
 
 ---
 
@@ -140,15 +148,15 @@ For maintainers: see [Releasing](docs/RELEASING.md) for the release process.
 
 ## Tech Stack
 
-| Component | Technology |
-|-----------|-----------|
-| Language | Rust (edition 2024) |
-| TUI | ratatui + crossterm |
-| Async | tokio |
-| System data | sysinfo |
-| CLI | clap (derive) |
-| Config | serde + toml |
-| Errors | thiserror + anyhow |
+| Component   | Technology          |
+| ----------- | ------------------- |
+| Language    | Rust (edition 2024) |
+| TUI         | ratatui + crossterm |
+| Async       | tokio               |
+| System data | sysinfo             |
+| CLI         | clap (derive)       |
+| Config      | serde + toml        |
+| Errors      | thiserror + anyhow  |
 
 ---
 
