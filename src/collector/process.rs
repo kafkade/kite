@@ -177,7 +177,7 @@ impl ProcessCollector {
                 Some(ppid) => !pid_set.contains(&ppid),
             })
             .collect();
-        roots.sort_by(|a, b| a.pid.cmp(&b.pid));
+        roots.sort_by_key(|a| a.pid);
 
         let mut result = Vec::new();
         for root in roots {
@@ -201,7 +201,7 @@ impl ProcessCollector {
         });
         if let Some(kids) = children {
             let mut sorted_kids = kids.clone();
-            sorted_kids.sort_by(|a, b| a.pid.cmp(&b.pid));
+            sorted_kids.sort_by_key(|a| a.pid);
             for child in sorted_kids {
                 Self::build_tree_dfs(child, depth + 1, children_map, result);
             }
