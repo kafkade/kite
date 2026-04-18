@@ -46,6 +46,8 @@ pub struct PanelVisibility {
     pub k8s: bool,
     #[serde(default = "bool_true")]
     pub sensors: bool,
+    #[serde(default)]
+    pub remote: bool,
 }
 
 impl Default for PanelVisibility {
@@ -60,6 +62,7 @@ impl Default for PanelVisibility {
             gpu: true,
             k8s: false,
             sensors: true,
+            remote: false,
         }
     }
 }
@@ -127,6 +130,7 @@ impl LayoutPreset {
                 panels.gpu = true;
                 panels.k8s = false;
                 panels.sensors = true;
+                panels.remote = false;
             }
             Self::Full => {
                 panels.cpu = true;
@@ -138,6 +142,7 @@ impl LayoutPreset {
                 panels.gpu = true;
                 panels.k8s = true;
                 panels.sensors = true;
+                panels.remote = true;
             }
             Self::Minimal => {
                 panels.cpu = true;
@@ -149,6 +154,7 @@ impl LayoutPreset {
                 panels.gpu = false;
                 panels.k8s = false;
                 panels.sensors = false;
+                panels.remote = false;
             }
             Self::Server => {
                 panels.cpu = true;
@@ -160,6 +166,7 @@ impl LayoutPreset {
                 panels.gpu = false;
                 panels.k8s = true;
                 panels.sensors = false;
+                panels.remote = true;
             }
             Self::Laptop => {
                 panels.cpu = true;
@@ -171,6 +178,7 @@ impl LayoutPreset {
                 panels.gpu = false;
                 panels.k8s = false;
                 panels.sensors = true;
+                panels.remote = false;
             }
             Self::GpuFocus => {
                 panels.cpu = true;
@@ -182,9 +190,34 @@ impl LayoutPreset {
                 panels.gpu = true;
                 panels.k8s = false;
                 panels.sensors = true;
+                panels.remote = false;
             }
         }
     }
+}
+
+/// Configuration for a single SSH remote machine.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RemoteConfig {
+    /// Display name for this remote (e.g., "prod-web-1")
+    pub name: String,
+    /// Hostname or IP address
+    pub host: String,
+    /// SSH port (default: 22)
+    #[serde(default = "default_ssh_port")]
+    pub port: u16,
+    /// SSH username
+    pub user: String,
+    /// Path to private key file (optional — falls back to SSH agent)
+    #[serde(default)]
+    pub key: Option<String>,
+    /// Enable SSH agent forwarding
+    #[serde(default)]
+    pub agent_forwarding: bool,
+}
+
+fn default_ssh_port() -> u16 {
+    22
 }
 
 /// Top-level application configuration.
@@ -216,6 +249,9 @@ pub struct Config {
 
     #[serde(default)]
     pub alerts: Vec<AlertRule>,
+
+    #[serde(default)]
+    pub remotes: Vec<RemoteConfig>,
 }
 
 impl Default for Config {
@@ -230,6 +266,7 @@ impl Default for Config {
             theme: default_theme(),
             layout: LayoutPreset::default(),
             alerts: Vec::new(),
+            remotes: Vec::new(),
         }
     }
 }
@@ -322,5 +359,43 @@ mod tests {
         let toml_str = toml::to_string_pretty(&config).unwrap();
         let parsed: Config = toml::from_str(&toml_str).unwrap();
         assert_eq!(config.update_interval_ms, parsed.update_interval_ms);
+    }
+
+    #[test]
+    fn deserialize_with_remotes() {
+        let toml_str = r#"
+            update_interval_ms = 1000
+
+            [[remotes]]
+            name = "prod-web-1"
+            host = "10.0.1.5"
+            port = 22
+            user = "monitor"
+            key = "~/.ssh/id_ed25519"
+
+            [[remotes]]
+            name = "prod-db-1"
+            host = "10.0.1.10"
+            user = "monitor"
+        "#;
+        let config: Config = toml::from_str(toml_str).unwrap();
+        assert_eq!(config.remotes.len(), 2);
+        assert_eq!(config.remotes[0].name, "prod-web-1");
+        assert_eq!(config.remotes[0].host, "10.0.1.5");
+        assert_eq!(config.remotes[0].port, 22);
+        assert_eq!(config.remotes[0].user, "monitor");
+        assert_eq!(config.remotes[0].key, Some("~/.ssh/id_ed25519".to_string()));
+        assert!(!config.remotes[0].agent_forwarding);
+
+        assert_eq!(config.remotes[1].name, "prod-db-1");
+        assert_eq!(config.remotes[1].port, 22); // default
+        assert!(config.remotes[1].key.is_none());
+    }
+
+    #[test]
+    fn default_config_has_no_remotes() {
+        let config = Config::default();
+        assert!(config.remotes.is_empty());
+        assert!(!config.panels.remote);
     }
 }

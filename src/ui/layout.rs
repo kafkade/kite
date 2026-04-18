@@ -9,7 +9,8 @@ use ratatui::{
 use crate::app::{App, InputMode};
 use crate::ui::theme::Theme;
 use crate::ui::widgets::{
-    container_box, cpu_box, disk_box, gpu_box, k8s_box, mem_box, net_box, proc_box, sensor_box,
+    container_box, cpu_box, disk_box, gpu_box, k8s_box, mem_box, net_box, proc_box, remote_box,
+    sensor_box,
 };
 
 /// Render the full application layout.
@@ -53,13 +54,16 @@ fn render_main_area(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
     let panels = &app.config().panels;
     let show_hw_row = panels.gpu || panels.sensors;
     let show_container_row = panels.docker || panels.k8s;
+    let show_remote_row = panels.remote;
+
+    let has_extra_rows = show_hw_row || show_container_row || show_remote_row;
 
     let mut constraints = Vec::new();
     let mut row_ids: Vec<&str> = Vec::new();
 
     // Row: CPU + Memory
     if panels.cpu || panels.memory {
-        constraints.push(if show_hw_row || show_container_row {
+        constraints.push(if has_extra_rows {
             Constraint::Percentage(25)
         } else {
             Constraint::Percentage(30)
@@ -69,7 +73,7 @@ fn render_main_area(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
 
     // Row: Network + Disk
     if panels.network || panels.disk {
-        constraints.push(if show_hw_row || show_container_row {
+        constraints.push(if has_extra_rows {
             Constraint::Percentage(20)
         } else {
             Constraint::Percentage(25)
@@ -92,6 +96,12 @@ fn render_main_area(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
             constraints.push(Constraint::Percentage(20));
             row_ids.push("containers_single");
         }
+    }
+
+    // Row: Remote machines
+    if show_remote_row {
+        constraints.push(Constraint::Percentage(20));
+        row_ids.push("remote");
     }
 
     // Row: Processes (always takes remaining space)
@@ -171,6 +181,9 @@ fn render_main_area(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
             }
             "proc" => {
                 proc_box::render(frame, rows[i], &app.proc_collector, &app.proc_widget, theme);
+            }
+            "remote" => {
+                remote_box::render(frame, rows[i], &app.remote, &app.remote_widget, theme);
             }
             _ => {}
         }

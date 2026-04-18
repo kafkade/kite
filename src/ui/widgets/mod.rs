@@ -6,4 +6,5 @@ pub mod k8s_box;
 pub mod mem_box;
 pub mod net_box;
 pub mod proc_box;
+pub mod remote_box;
 pub mod sensor_box;

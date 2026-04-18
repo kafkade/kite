@@ -24,6 +24,7 @@ pub struct Theme {
     pub battery_border: Color,
     pub docker_border: Color,
     pub k8s_border: Color,
+    pub remote_border: Color,
 
     // Semantic colors (usage/temperature thresholds)
     pub good: Color,
@@ -75,6 +76,7 @@ pub fn default_theme() -> Theme {
         battery_border: Color::Green,
         docker_border: Color::Cyan,
         k8s_border: Color::Cyan,
+        remote_border: Color::Magenta,
         good: Color::Green,
         warning: Color::Yellow,
         critical: Color::Red,
@@ -125,6 +127,7 @@ fn dracula_theme() -> Theme {
         battery_border: GREEN,
         docker_border: CYAN,
         k8s_border: CYAN,
+        remote_border: PURPLE,
         good: GREEN,
         warning: YELLOW,
         critical: RED,
@@ -175,6 +178,7 @@ fn gruvbox_dark_theme() -> Theme {
         battery_border: GREEN,
         docker_border: BLUE,
         k8s_border: AQUA,
+        remote_border: PURPLE,
         good: GREEN,
         warning: YELLOW,
         critical: RED,
@@ -226,6 +230,7 @@ fn catppuccin_mocha_theme() -> Theme {
         battery_border: GREEN,
         docker_border: TEAL,
         k8s_border: BLUE,
+        remote_border: MAUVE,
         good: GREEN,
         warning: YELLOW,
         critical: RED,
@@ -277,6 +282,7 @@ fn catppuccin_latte_theme() -> Theme {
         battery_border: GREEN,
         docker_border: TEAL,
         k8s_border: BLUE,
+        remote_border: MAUVE,
         good: GREEN,
         warning: YELLOW,
         critical: RED,
@@ -328,6 +334,7 @@ fn nord_theme() -> Theme {
         battery_border: GREEN,
         docker_border: FROST0,
         k8s_border: FROST2,
+        remote_border: PURPLE,
         good: GREEN,
         warning: YELLOW,
         critical: RED,
@@ -379,6 +386,7 @@ fn solarized_dark_theme() -> Theme {
         battery_border: GREEN,
         docker_border: CYAN,
         k8s_border: BLUE,
+        remote_border: MAGENTA,
         good: GREEN,
         warning: YELLOW,
         critical: RED,
@@ -430,6 +438,7 @@ fn solarized_light_theme() -> Theme {
         battery_border: GREEN,
         docker_border: CYAN,
         k8s_border: BLUE,
+        remote_border: MAGENTA,
         good: GREEN,
         warning: YELLOW,
         critical: RED,
@@ -481,6 +490,7 @@ fn tokyo_night_theme() -> Theme {
         battery_border: GREEN,
         docker_border: TEAL,
         k8s_border: BLUE,
+        remote_border: MAGENTA,
         good: GREEN,
         warning: YELLOW,
         critical: RED,
@@ -531,6 +541,7 @@ fn one_dark_theme() -> Theme {
         battery_border: GREEN,
         docker_border: CYAN,
         k8s_border: BLUE,
+        remote_border: MAGENTA,
         good: GREEN,
         warning: YELLOW,
         critical: RED,
@@ -580,6 +591,7 @@ fn monokai_theme() -> Theme {
         battery_border: GREEN,
         docker_border: CYAN,
         k8s_border: PURPLE,
+        remote_border: CYAN,
         good: GREEN,
         warning: ORANGE,
         critical: RED_PINK,
@@ -664,6 +676,7 @@ pub struct ThemeColors {
     pub battery_border: String,
     pub docker_border: String,
     pub k8s_border: String,
+    pub remote_border: String,
 
     pub good: String,
     pub warning: String,
@@ -768,6 +781,7 @@ fn theme_from_file(file: ThemeFile) -> anyhow::Result<Theme> {
         battery_border: require_color(&c.battery_border, "battery_border")?,
         docker_border: require_color(&c.docker_border, "docker_border")?,
         k8s_border: require_color(&c.k8s_border, "k8s_border")?,
+        remote_border: require_color(&c.remote_border, "remote_border")?,
         good: require_color(&c.good, "good")?,
         warning: require_color(&c.warning, "warning")?,
         critical: require_color(&c.critical, "critical")?,
@@ -925,6 +939,7 @@ sensor_border = "#fab387"
 battery_border = "#a6e3a1"
 docker_border = "#94e2d5"
 k8s_border = "#89b4fa"
+remote_border = "#cba6f7"
 good = "#a6e3a1"
 warning = "#f9e2af"
 critical = "#f38ba8"
@@ -974,6 +989,7 @@ sensor_border = "magenta"
 battery_border = "green"
 docker_border = "cyan"
 k8s_border = "cyan"
+remote_border = "magenta"
 good = "green"
 warning = "yellow"
 critical = "red"
@@ -1022,6 +1038,7 @@ sensor_border = "magenta"
 battery_border = "green"
 docker_border = "cyan"
 k8s_border = "cyan"
+remote_border = "magenta"
 good = "green"
 warning = "yellow"
 critical = "red"

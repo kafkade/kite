@@ -7,6 +7,7 @@ pub mod k8s;
 pub mod memory;
 pub mod network;
 pub mod process;
+pub mod remote;
 pub mod sensor;
 
 use anyhow::Result;
