@@ -24,7 +24,7 @@ impl CpuCollector {
         system.refresh_cpu_all();
 
         let thread_count = system.cpus().len();
-        let core_count = system.physical_core_count().unwrap_or(thread_count);
+        let core_count = System::physical_core_count().unwrap_or(thread_count);
         let cpu_model = system
             .cpus()
             .first()
