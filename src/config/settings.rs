@@ -36,6 +36,10 @@ pub struct PanelVisibility {
     pub network: bool,
     #[serde(default = "bool_true")]
     pub processes: bool,
+    #[serde(default = "bool_true")]
+    pub gpu: bool,
+    #[serde(default = "bool_true")]
+    pub sensors: bool,
 }
 
 impl Default for PanelVisibility {
@@ -46,6 +50,8 @@ impl Default for PanelVisibility {
             disk: true,
             network: true,
             processes: true,
+            gpu: true,
+            sensors: true,
         }
     }
 }
