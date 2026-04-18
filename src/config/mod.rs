@@ -6,7 +6,7 @@ use std::path::PathBuf;
 
 use anyhow::{Context, Result};
 
-use settings::Config;
+use settings::{Config, LayoutPreset};
 
 /// Resolve the config file path using platform conventions.
 pub fn config_path() -> PathBuf {
@@ -35,9 +35,22 @@ pub fn load() -> Result<Config> {
 }
 
 /// Apply CLI overrides onto a loaded config.
-pub fn apply_cli_overrides(config: &mut Config, interval: Option<u64>) {
+pub fn apply_cli_overrides(
+    config: &mut Config,
+    interval: Option<u64>,
+    theme: Option<&str>,
+    layout: Option<&str>,
+) {
     if let Some(ms) = interval {
         config.update_interval_ms = ms.max(100); // enforce minimum
+    }
+    if let Some(t) = theme {
+        config.theme = t.to_string();
+    }
+    if let Some(l) = layout {
+        let preset = LayoutPreset::from_name(l);
+        config.layout = preset;
+        preset.apply_to_panels(&mut config.panels);
     }
 }
 
@@ -73,14 +86,14 @@ mod tests {
     #[test]
     fn apply_overrides() {
         let mut config = Config::default();
-        apply_cli_overrides(&mut config, Some(500));
+        apply_cli_overrides(&mut config, Some(500), None, None);
         assert_eq!(config.update_interval_ms, 500);
     }
 
     #[test]
     fn apply_overrides_enforces_minimum() {
         let mut config = Config::default();
-        apply_cli_overrides(&mut config, Some(50));
+        apply_cli_overrides(&mut config, Some(50), None, None);
         assert_eq!(config.update_interval_ms, 100);
     }
 

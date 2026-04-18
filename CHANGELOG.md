@@ -17,6 +17,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `gpu` and `sensors` fields in panel visibility configuration (TOML)
 - Graceful degradation: "No GPU detected" and "No sensors detected" when hardware is unavailable
 - `gpu` feature flag in Cargo.toml for optional NVIDIA NVML dependency (enabled by default)
+- Battery monitoring in the status bar showing charge percentage, state (CHG/FULL), and power draw in watts
+- `battery` feature flag for optional battery dependency (enabled by default; desktops show nothing)
+- Theming engine with 11 built-in color themes: Default, Dracula, Gruvbox Dark, Catppuccin Mocha, Catppuccin Latte, Nord, Solarized Dark, Solarized Light, Tokyo Night, One Dark, Monokai
+- Custom TOML theme file support — load user-defined themes from `~/.config/kite/themes/`
+- Theme cycling in the settings menu (`m`) and `--theme` CLI flag
+- Layout presets: Default, Minimal, Full, Server, Laptop, GPU Focus — each configures panel visibility in one step
+- Layout preset cycling in the settings menu and `--layout` CLI flag
 - Project website at `kite.kafkade.com` with brand kit, downloads, and feature overview
 - Light and dark theme toggle with cookie persistence
 - Interactive terminal mockup showing kite's dashboard output
@@ -31,6 +38,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Changed
 
+- All UI panels now use theme-driven colors instead of hardcoded values
+- Status bar shows active theme name
 - Improved dark mode contrast — all body text now meets WCAG AA (4.5:1)
 - Rebranded wordmark to lowercase `kite` to match CLI identity
 

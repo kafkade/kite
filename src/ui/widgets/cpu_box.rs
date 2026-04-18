@@ -1,20 +1,21 @@
 use ratatui::{
     Frame,
     layout::{Constraint, Direction, Layout, Rect},
-    style::{Color, Style},
+    style::Style,
     text::{Line, Span},
     widgets::{Block, Borders, Paragraph, Sparkline},
 };
 
 use crate::collector::cpu::CpuCollector;
+use crate::ui::theme::Theme;
 use crate::util::units::{format_duration, format_percentage};
 
 /// Render the CPU widget into the given area.
-pub fn render(frame: &mut Frame, area: Rect, cpu: &CpuCollector) {
+pub fn render(frame: &mut Frame, area: Rect, cpu: &CpuCollector, theme: &Theme) {
     let outer_block = Block::default()
         .title(" CPU ")
         .borders(Borders::ALL)
-        .border_style(Style::default().fg(Color::Cyan));
+        .border_style(Style::default().fg(theme.cpu_border));
 
     let inner = outer_block.inner(area);
     frame.render_widget(outer_block, area);
@@ -29,18 +30,21 @@ pub fn render(frame: &mut Frame, area: Rect, cpu: &CpuCollector) {
         .constraints([Constraint::Percentage(60), Constraint::Percentage(40)])
         .split(inner);
 
-    render_history(frame, vert[0], cpu);
-    render_bottom(frame, vert[1], cpu);
+    render_history(frame, vert[0], cpu, theme);
+    render_bottom(frame, vert[1], cpu, theme);
 }
 
-fn render_history(frame: &mut Frame, area: Rect, cpu: &CpuCollector) {
+fn render_history(frame: &mut Frame, area: Rect, cpu: &CpuCollector, theme: &Theme) {
     let usage_text = format_percentage(cpu.total_usage());
 
     // Usage label in top-right
     let label_width = usage_text.len() as u16;
     if area.width > label_width + 1 && area.height > 0 {
         let label_area = Rect::new(area.x + area.width - label_width, area.y, label_width, 1);
-        let label = Paragraph::new(Span::styled(usage_text, Style::default().fg(Color::White)));
+        let label = Paragraph::new(Span::styled(
+            usage_text,
+            Style::default().fg(theme.text_primary),
+        ));
         frame.render_widget(label, label_area);
     }
 
@@ -60,32 +64,22 @@ fn render_history(frame: &mut Frame, area: Rect, cpu: &CpuCollector) {
     let sparkline = Sparkline::default()
         .data(&data)
         .max(10_000)
-        .style(Style::default().fg(Color::Red));
+        .style(Style::default().fg(theme.sparkline_cpu));
 
     frame.render_widget(sparkline, spark_area);
 }
 
-fn render_bottom(frame: &mut Frame, area: Rect, cpu: &CpuCollector) {
+fn render_bottom(frame: &mut Frame, area: Rect, cpu: &CpuCollector, theme: &Theme) {
     let horiz = Layout::default()
         .direction(Direction::Horizontal)
         .constraints([Constraint::Percentage(60), Constraint::Percentage(40)])
         .split(area);
 
-    render_core_bars(frame, horiz[0], cpu);
-    render_stats(frame, horiz[1], cpu);
+    render_core_bars(frame, horiz[0], cpu, theme);
+    render_stats(frame, horiz[1], cpu, theme);
 }
 
-fn color_for_usage(pct: f64) -> Color {
-    if pct >= 80.0 {
-        Color::Red
-    } else if pct >= 50.0 {
-        Color::Yellow
-    } else {
-        Color::Green
-    }
-}
-
-fn render_core_bars(frame: &mut Frame, area: Rect, cpu: &CpuCollector) {
+fn render_core_bars(frame: &mut Frame, area: Rect, cpu: &CpuCollector, theme: &Theme) {
     let cores = cpu.per_core_usage();
     let max_lines = area.height as usize;
     let show = cores.len().min(max_lines);
@@ -98,12 +92,12 @@ fn render_core_bars(frame: &mut Frame, area: Rect, cpu: &CpuCollector) {
         let empty = bar_width.saturating_sub(filled);
         let pct_str = format!("{:>5.1}%", usage);
 
-        let color = color_for_usage(usage);
+        let color = color_for_usage(usage, theme);
         lines.push(Line::from(vec![
-            Span::styled(label, Style::default().fg(Color::DarkGray)),
+            Span::styled(label, Style::default().fg(theme.text_secondary)),
             Span::raw(" "),
             Span::styled("█".repeat(filled), Style::default().fg(color)),
-            Span::styled("░".repeat(empty), Style::default().fg(Color::DarkGray)),
+            Span::styled("░".repeat(empty), Style::default().fg(theme.text_secondary)),
             Span::raw(" "),
             Span::styled(pct_str, Style::default().fg(color)),
         ]));
@@ -113,7 +107,17 @@ fn render_core_bars(frame: &mut Frame, area: Rect, cpu: &CpuCollector) {
     frame.render_widget(paragraph, area);
 }
 
-fn render_stats(frame: &mut Frame, area: Rect, cpu: &CpuCollector) {
+fn color_for_usage(pct: f64, theme: &Theme) -> ratatui::style::Color {
+    if pct >= 80.0 {
+        theme.critical
+    } else if pct >= 50.0 {
+        theme.warning
+    } else {
+        theme.good
+    }
+}
+
+fn render_stats(frame: &mut Frame, area: Rect, cpu: &CpuCollector, theme: &Theme) {
     let mut lines: Vec<Line> = Vec::new();
 
     // CPU model (truncate to fit)
@@ -126,13 +130,13 @@ fn render_stats(frame: &mut Frame, area: Rect, cpu: &CpuCollector) {
     };
     lines.push(Line::from(Span::styled(
         display_model.to_string(),
-        Style::default().fg(Color::White),
+        Style::default().fg(theme.text_primary),
     )));
 
     // Cores / threads
     lines.push(Line::from(Span::styled(
         format!("{}C/{}T", cpu.core_count(), cpu.thread_count()),
-        Style::default().fg(Color::Cyan),
+        Style::default().fg(theme.accent),
     )));
 
     // Average frequency
@@ -142,7 +146,7 @@ fn render_stats(frame: &mut Frame, area: Rect, cpu: &CpuCollector) {
         let avg_ghz = avg_mhz / 1000.0;
         lines.push(Line::from(Span::styled(
             format!("{:.2} GHz", avg_ghz),
-            Style::default().fg(Color::Cyan),
+            Style::default().fg(theme.accent),
         )));
     }
 
@@ -151,14 +155,14 @@ fn render_stats(frame: &mut Frame, area: Rect, cpu: &CpuCollector) {
     if l1 != 0.0 || l5 != 0.0 || l15 != 0.0 {
         lines.push(Line::from(Span::styled(
             format!("Load: {:.2} {:.2} {:.2}", l1, l5, l15),
-            Style::default().fg(Color::Yellow),
+            Style::default().fg(theme.warning),
         )));
     }
 
     // Uptime
     lines.push(Line::from(Span::styled(
         format!("Up: {}", format_duration(cpu.uptime_secs())),
-        Style::default().fg(Color::Green),
+        Style::default().fg(theme.good),
     )));
 
     let paragraph = Paragraph::new(lines);

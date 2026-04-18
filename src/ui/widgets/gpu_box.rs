@@ -7,14 +7,15 @@ use ratatui::{
 };
 
 use crate::collector::gpu::GpuCollector;
+use crate::ui::theme::Theme;
 use crate::util::units::{format_bytes, format_percentage};
 
 /// Render the GPU widget into the given area.
-pub fn render(frame: &mut Frame, area: Rect, gpu: &GpuCollector) {
+pub fn render(frame: &mut Frame, area: Rect, gpu: &GpuCollector, theme: &Theme) {
     let outer_block = Block::default()
         .title(" GPU ")
         .borders(Borders::ALL)
-        .border_style(Style::default().fg(Color::Blue));
+        .border_style(Style::default().fg(theme.gpu_border));
 
     let inner = outer_block.inner(area);
     frame.render_widget(outer_block, area);
@@ -25,7 +26,7 @@ pub fn render(frame: &mut Frame, area: Rect, gpu: &GpuCollector) {
 
     if !gpu.has_gpu() {
         let msg = Paragraph::new("No GPU detected")
-            .style(Style::default().fg(Color::DarkGray))
+            .style(Style::default().fg(theme.text_secondary))
             .alignment(Alignment::Center);
         let y_offset = inner.height / 2;
         let centered = Rect::new(inner.x, inner.y + y_offset, inner.width, 1);
@@ -38,11 +39,11 @@ pub fn render(frame: &mut Frame, area: Rect, gpu: &GpuCollector) {
         .constraints([Constraint::Percentage(40), Constraint::Percentage(60)])
         .split(inner);
 
-    render_history(frame, vert[0], gpu);
-    render_details(frame, vert[1], gpu);
+    render_history(frame, vert[0], gpu, theme);
+    render_details(frame, vert[1], gpu, theme);
 }
 
-fn render_history(frame: &mut Frame, area: Rect, gpu: &GpuCollector) {
+fn render_history(frame: &mut Frame, area: Rect, gpu: &GpuCollector, theme: &Theme) {
     let current_pct = gpu
         .devices()
         .first()
@@ -54,7 +55,10 @@ fn render_history(frame: &mut Frame, area: Rect, gpu: &GpuCollector) {
     let label_width = current_pct.len() as u16;
     if area.width > label_width + 1 && area.height > 0 {
         let label_area = Rect::new(area.x + area.width - label_width, area.y, label_width, 1);
-        let label = Paragraph::new(Span::styled(current_pct, Style::default().fg(Color::White)));
+        let label = Paragraph::new(Span::styled(
+            current_pct,
+            Style::default().fg(theme.text_primary),
+        ));
         frame.render_widget(label, label_area);
     }
 
@@ -73,42 +77,42 @@ fn render_history(frame: &mut Frame, area: Rect, gpu: &GpuCollector) {
     let sparkline = Sparkline::default()
         .data(&data)
         .max(10_000)
-        .style(Style::default().fg(Color::Magenta));
+        .style(Style::default().fg(theme.sparkline_gpu));
 
     frame.render_widget(sparkline, spark_area);
 }
 
-fn color_for_usage(pct: u32) -> Color {
+fn color_for_usage(pct: u32, theme: &Theme) -> Color {
     if pct >= 80 {
-        Color::Red
+        theme.critical
     } else if pct >= 50 {
-        Color::Yellow
+        theme.warning
     } else {
-        Color::Green
+        theme.good
     }
 }
 
-fn color_for_temp(temp: u32) -> Color {
+fn color_for_temp(temp: u32, theme: &Theme) -> Color {
     if temp >= 80 {
-        Color::Red
+        theme.critical
     } else if temp >= 60 {
-        Color::Yellow
+        theme.warning
     } else {
-        Color::Green
+        theme.good
     }
 }
 
-fn render_details(frame: &mut Frame, area: Rect, gpu: &GpuCollector) {
+fn render_details(frame: &mut Frame, area: Rect, gpu: &GpuCollector, theme: &Theme) {
     let horiz = Layout::default()
         .direction(Direction::Horizontal)
         .constraints([Constraint::Percentage(60), Constraint::Percentage(40)])
         .split(area);
 
-    render_left(frame, horiz[0], gpu);
-    render_right(frame, horiz[1], gpu);
+    render_left(frame, horiz[0], gpu, theme);
+    render_right(frame, horiz[1], gpu, theme);
 }
 
-fn render_left(frame: &mut Frame, area: Rect, gpu: &GpuCollector) {
+fn render_left(frame: &mut Frame, area: Rect, gpu: &GpuCollector, theme: &Theme) {
     let dev = match gpu.devices().first() {
         Some(d) => d,
         None => return,
@@ -125,14 +129,14 @@ fn render_left(frame: &mut Frame, area: Rect, gpu: &GpuCollector) {
     };
     lines.push(Line::from(Span::styled(
         display_name.to_string(),
-        Style::default().fg(Color::White),
+        Style::default().fg(theme.text_primary),
     )));
 
     // Multi-GPU note
     if gpu.device_count() > 1 {
         lines.push(Line::from(Span::styled(
             format!("(+{} more)", gpu.device_count() - 1),
-            Style::default().fg(Color::DarkGray),
+            Style::default().fg(theme.text_secondary),
         )));
     }
 
@@ -143,19 +147,19 @@ fn render_left(frame: &mut Frame, area: Rect, gpu: &GpuCollector) {
         let filled = ((util as f64 / 100.0) * bar_width as f64) as usize;
         let empty = bar_width.saturating_sub(filled);
         let pct_str = format!("{:>5.1}%", util as f64);
-        let color = color_for_usage(util);
+        let color = color_for_usage(util, theme);
 
         lines.push(Line::from(vec![
-            Span::styled(label, Style::default().fg(Color::DarkGray)),
+            Span::styled(label, Style::default().fg(theme.text_secondary)),
             Span::styled("█".repeat(filled), Style::default().fg(color)),
-            Span::styled("░".repeat(empty), Style::default().fg(Color::DarkGray)),
+            Span::styled("░".repeat(empty), Style::default().fg(theme.text_secondary)),
             Span::raw(" "),
             Span::styled(pct_str, Style::default().fg(color)),
         ]));
     } else {
         lines.push(Line::from(Span::styled(
             "GPU  N/A",
-            Style::default().fg(Color::DarkGray),
+            Style::default().fg(theme.text_secondary),
         )));
     }
 
@@ -171,19 +175,19 @@ fn render_left(frame: &mut Frame, area: Rect, gpu: &GpuCollector) {
                 as usize;
             let filled = ((used as f64 / total as f64) * bar_width as f64) as usize;
             let empty = bar_width.saturating_sub(filled);
-            let color = color_for_usage(pct);
+            let color = color_for_usage(pct, theme);
 
             lines.push(Line::from(vec![
-                Span::styled(label, Style::default().fg(Color::DarkGray)),
+                Span::styled(label, Style::default().fg(theme.text_secondary)),
                 Span::styled("█".repeat(filled), Style::default().fg(color)),
-                Span::styled("░".repeat(empty), Style::default().fg(Color::DarkGray)),
+                Span::styled("░".repeat(empty), Style::default().fg(theme.text_secondary)),
                 Span::styled(vram_text, Style::default().fg(color)),
             ]));
         }
         _ => {
             lines.push(Line::from(Span::styled(
                 "VRAM N/A",
-                Style::default().fg(Color::DarkGray),
+                Style::default().fg(theme.text_secondary),
             )));
         }
     }
@@ -192,52 +196,55 @@ fn render_left(frame: &mut Frame, area: Rect, gpu: &GpuCollector) {
     frame.render_widget(paragraph, area);
 }
 
-fn render_right(frame: &mut Frame, area: Rect, gpu: &GpuCollector) {
+fn render_right(frame: &mut Frame, area: Rect, gpu: &GpuCollector, theme: &Theme) {
     let dev = match gpu.devices().first() {
         Some(d) => d,
         None => return,
     };
 
-    let na = Span::styled("N/A", Style::default().fg(Color::DarkGray));
+    let na = Span::styled("N/A", Style::default().fg(theme.text_secondary));
     let mut lines: Vec<Line> = Vec::new();
 
     // Temperature
     let temp_span = match dev.temperature {
-        Some(t) => Span::styled(format!("{}°C", t), Style::default().fg(color_for_temp(t))),
+        Some(t) => Span::styled(
+            format!("{}°C", t),
+            Style::default().fg(color_for_temp(t, theme)),
+        ),
         None => na.clone(),
     };
     lines.push(Line::from(vec![
-        Span::styled("Temp: ", Style::default().fg(Color::DarkGray)),
+        Span::styled("Temp: ", Style::default().fg(theme.text_secondary)),
         temp_span,
     ]));
 
     // Fan speed
     let fan_span = match dev.fan_speed {
-        Some(f) => Span::styled(format!("{}%", f), Style::default().fg(Color::Cyan)),
+        Some(f) => Span::styled(format!("{}%", f), Style::default().fg(theme.accent)),
         None => na.clone(),
     };
     lines.push(Line::from(vec![
-        Span::styled("Fan:  ", Style::default().fg(Color::DarkGray)),
+        Span::styled("Fan:  ", Style::default().fg(theme.text_secondary)),
         fan_span,
     ]));
 
     // Graphics clock
     let gclk_span = match dev.clock_graphics {
-        Some(c) => Span::styled(format!("{} MHz", c), Style::default().fg(Color::Cyan)),
+        Some(c) => Span::styled(format!("{} MHz", c), Style::default().fg(theme.accent)),
         None => na.clone(),
     };
     lines.push(Line::from(vec![
-        Span::styled("GClk: ", Style::default().fg(Color::DarkGray)),
+        Span::styled("GClk: ", Style::default().fg(theme.text_secondary)),
         gclk_span,
     ]));
 
     // Memory clock
     let mclk_span = match dev.clock_memory {
-        Some(c) => Span::styled(format!("{} MHz", c), Style::default().fg(Color::Cyan)),
+        Some(c) => Span::styled(format!("{} MHz", c), Style::default().fg(theme.accent)),
         None => na.clone(),
     };
     lines.push(Line::from(vec![
-        Span::styled("MClk: ", Style::default().fg(Color::DarkGray)),
+        Span::styled("MClk: ", Style::default().fg(theme.text_secondary)),
         mclk_span,
     ]));
 
@@ -245,15 +252,15 @@ fn render_right(frame: &mut Frame, area: Rect, gpu: &GpuCollector) {
     let power_span = match (dev.power_draw, dev.power_limit) {
         (Some(draw), Some(limit)) => Span::styled(
             format!("{:.0}W/{:.0}W", draw, limit),
-            Style::default().fg(Color::Cyan),
+            Style::default().fg(theme.accent),
         ),
         (Some(draw), None) => {
-            Span::styled(format!("{:.0}W", draw), Style::default().fg(Color::Cyan))
+            Span::styled(format!("{:.0}W", draw), Style::default().fg(theme.accent))
         }
         _ => na.clone(),
     };
     lines.push(Line::from(vec![
-        Span::styled("Pwr:  ", Style::default().fg(Color::DarkGray)),
+        Span::styled("Pwr:  ", Style::default().fg(theme.text_secondary)),
         power_span,
     ]));
 

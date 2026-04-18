@@ -56,6 +56,108 @@ impl Default for PanelVisibility {
     }
 }
 
+/// Layout presets that configure panel visibility in one step.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "lowercase")]
+pub enum LayoutPreset {
+    #[default]
+    Default,
+    Minimal,
+    Full,
+    Server,
+    Laptop,
+    GpuFocus,
+}
+
+impl LayoutPreset {
+    /// Get all preset names for menu display.
+    pub fn all_names() -> Vec<&'static str> {
+        vec![
+            "Default",
+            "Minimal",
+            "Full",
+            "Server",
+            "Laptop",
+            "GPU Focus",
+        ]
+    }
+
+    /// Convert from display name to enum.
+    pub fn from_name(name: &str) -> Self {
+        match name.to_lowercase().as_str() {
+            "minimal" => Self::Minimal,
+            "full" => Self::Full,
+            "server" => Self::Server,
+            "laptop" => Self::Laptop,
+            "gpu focus" | "gpu-focus" | "gpufocus" | "gpu_focus" => Self::GpuFocus,
+            _ => Self::Default,
+        }
+    }
+
+    /// Convert to display name.
+    pub fn display_name(&self) -> &'static str {
+        match self {
+            Self::Default => "Default",
+            Self::Minimal => "Minimal",
+            Self::Full => "Full",
+            Self::Server => "Server",
+            Self::Laptop => "Laptop",
+            Self::GpuFocus => "GPU Focus",
+        }
+    }
+
+    /// Apply this preset to PanelVisibility.
+    pub fn apply_to_panels(&self, panels: &mut PanelVisibility) {
+        match self {
+            Self::Default | Self::Full => {
+                panels.cpu = true;
+                panels.memory = true;
+                panels.disk = true;
+                panels.network = true;
+                panels.processes = true;
+                panels.gpu = true;
+                panels.sensors = true;
+            }
+            Self::Minimal => {
+                panels.cpu = true;
+                panels.memory = true;
+                panels.disk = false;
+                panels.network = false;
+                panels.processes = true;
+                panels.gpu = false;
+                panels.sensors = false;
+            }
+            Self::Server => {
+                panels.cpu = true;
+                panels.memory = true;
+                panels.disk = true;
+                panels.network = true;
+                panels.processes = true;
+                panels.gpu = false;
+                panels.sensors = false;
+            }
+            Self::Laptop => {
+                panels.cpu = true;
+                panels.memory = true;
+                panels.disk = true;
+                panels.network = true;
+                panels.processes = true;
+                panels.gpu = false;
+                panels.sensors = true;
+            }
+            Self::GpuFocus => {
+                panels.cpu = true;
+                panels.memory = true;
+                panels.disk = false;
+                panels.network = false;
+                panels.processes = true;
+                panels.gpu = true;
+                panels.sensors = true;
+            }
+        }
+    }
+}
+
 /// Top-level application configuration.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
@@ -76,6 +178,12 @@ pub struct Config {
 
     #[serde(default)]
     pub keybindings: HashMap<String, String>,
+
+    #[serde(default = "default_theme")]
+    pub theme: String,
+
+    #[serde(default)]
+    pub layout: LayoutPreset,
 }
 
 impl Default for Config {
@@ -87,6 +195,8 @@ impl Default for Config {
             graph_history_depth: default_graph_history(),
             panels: PanelVisibility::default(),
             keybindings: HashMap::new(),
+            theme: default_theme(),
+            layout: LayoutPreset::default(),
         }
     }
 }
@@ -97,6 +207,10 @@ fn default_update_interval() -> u64 {
 
 fn default_graph_history() -> usize {
     300
+}
+
+fn default_theme() -> String {
+    "default".to_string()
 }
 
 fn bool_true() -> bool {
@@ -116,6 +230,8 @@ mod tests {
         assert_eq!(config.graph_history_depth, 300);
         assert!(config.panels.cpu);
         assert!(config.panels.processes);
+        assert_eq!(config.theme, "default");
+        assert_eq!(config.layout, LayoutPreset::Default);
     }
 
     #[test]

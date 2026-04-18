@@ -1,6 +1,7 @@
 use std::time::Instant;
 
 use crate::collector::Collector;
+use crate::collector::battery::BatteryCollector;
 use crate::collector::cpu::CpuCollector;
 use crate::collector::disk::DiskCollector;
 use crate::collector::gpu::GpuCollector;
@@ -12,6 +13,7 @@ use crate::config::keybindings::KeyBindings;
 use crate::config::settings::Config;
 use crate::ui::dialog::ConfirmDialog;
 use crate::ui::menu::SettingsMenu;
+use crate::ui::theme::{self, Theme};
 use crate::ui::widgets::proc_box::ProcessWidget;
 
 /// Application state machine.
@@ -47,8 +49,10 @@ pub struct App {
     pub proc_widget: ProcessWidget,
     pub sensor: SensorCollector,
     pub gpu: GpuCollector,
+    pub battery: BatteryCollector,
     pub dialog: Option<ConfirmDialog>,
     pub menu: Option<SettingsMenu>,
+    pub theme: Theme,
 }
 
 impl App {
@@ -67,6 +71,7 @@ impl App {
         let mut proc_collector = ProcessCollector::new();
         let mut sensor = SensorCollector::new(history_depth);
         let mut gpu = GpuCollector::new(history_depth);
+        let mut battery = BatteryCollector::new();
 
         // Initial collection so first render has data
         let _ = cpu.collect();
@@ -76,6 +81,9 @@ impl App {
         let _ = proc_collector.collect();
         let _ = sensor.collect();
         let _ = gpu.collect();
+        let _ = battery.collect();
+
+        let theme = theme::get_builtin_theme(&config.theme).unwrap_or_else(theme::default_theme);
 
         Self {
             state: AppState::Running,
@@ -93,8 +101,10 @@ impl App {
             proc_widget: ProcessWidget::new(),
             sensor,
             gpu,
+            battery,
             dialog: None,
             menu: None,
+            theme,
         }
     }
 
@@ -107,6 +117,7 @@ impl App {
         let _ = self.proc_collector.collect();
         let _ = self.sensor.collect();
         let _ = self.gpu.collect();
+        let _ = self.battery.collect();
     }
 
     /// Open the help overlay.
@@ -138,6 +149,9 @@ impl App {
     pub fn close_menu(&mut self) {
         if let Some(ref menu) = self.menu {
             menu.apply_to_config(&mut self.config);
+            if let Some(new_theme) = theme::get_builtin_theme(&self.config.theme) {
+                self.theme = new_theme;
+            }
         }
         self.menu = None;
         self.input_mode = InputMode::Normal;
@@ -175,6 +189,16 @@ impl App {
 
     pub fn config(&self) -> &Config {
         &self.config
+    }
+
+    #[allow(dead_code)]
+    pub fn config_mut(&mut self) -> &mut Config {
+        &mut self.config
+    }
+
+    #[allow(dead_code)]
+    pub fn set_theme(&mut self, theme: Theme) {
+        self.theme = theme;
     }
 
     pub fn keybindings(&self) -> &KeyBindings {

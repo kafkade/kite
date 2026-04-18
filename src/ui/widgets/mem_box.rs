@@ -7,10 +7,17 @@ use ratatui::{
 };
 
 use crate::collector::memory::MemoryCollector;
+use crate::ui::theme::Theme;
 use crate::util::units::{format_bytes, format_percentage};
 
 /// Build a text-based gauge bar like `"RAM  [████████░░░░░░░░░░░░░] 39.1%"`
-fn render_gauge(label: &str, percent: f64, bar_width: usize, color: Color) -> Line<'static> {
+fn render_gauge(
+    label: &str,
+    percent: f64,
+    bar_width: usize,
+    color: Color,
+    theme: &Theme,
+) -> Line<'static> {
     let filled = ((percent / 100.0) * bar_width as f64).round() as usize;
     let filled = filled.min(bar_width);
     let empty = bar_width.saturating_sub(filled);
@@ -19,32 +26,35 @@ fn render_gauge(label: &str, percent: f64, bar_width: usize, color: Color) -> Li
     let bar_empty: String = "░".repeat(empty);
 
     Line::from(vec![
-        Span::styled(format!("{:<4} [", label), Style::default().fg(Color::White)),
+        Span::styled(
+            format!("{:<4} [", label),
+            Style::default().fg(theme.text_primary),
+        ),
         Span::styled(bar_filled, Style::default().fg(color)),
-        Span::styled(bar_empty, Style::default().fg(Color::DarkGray)),
+        Span::styled(bar_empty, Style::default().fg(theme.text_secondary)),
         Span::styled(
             format!("] {}", format_percentage(percent)),
-            Style::default().fg(Color::White),
+            Style::default().fg(theme.text_primary),
         ),
     ])
 }
 
 /// Pick a color based on usage percentage thresholds.
-fn usage_color(percent: f64) -> Color {
+fn usage_color(percent: f64, theme: &Theme) -> Color {
     if percent >= 80.0 {
-        Color::Red
+        theme.critical
     } else if percent >= 50.0 {
-        Color::Yellow
+        theme.warning
     } else {
-        Color::Green
+        theme.good
     }
 }
 
-pub fn render(frame: &mut Frame, area: Rect, mem: &MemoryCollector) {
+pub fn render(frame: &mut Frame, area: Rect, mem: &MemoryCollector, theme: &Theme) {
     let block = Block::default()
         .title(" Memory ")
         .borders(Borders::ALL)
-        .border_style(Style::default().fg(Color::Green));
+        .border_style(Style::default().fg(theme.mem_border));
 
     let inner = block.inner(area);
     frame.render_widget(block, area);
@@ -68,7 +78,7 @@ pub fn render(frame: &mut Frame, area: Rect, mem: &MemoryCollector) {
     let sparkline = Sparkline::default()
         .data(&history_data)
         .max(100)
-        .style(Style::default().fg(Color::Green));
+        .style(Style::default().fg(theme.sparkline_mem));
     frame.render_widget(sparkline, sections[0]);
 
     // --- Middle section: Gauges ---
@@ -79,12 +89,19 @@ pub fn render(frame: &mut Frame, area: Rect, mem: &MemoryCollector) {
         "RAM",
         ram_pct,
         bar_width,
-        usage_color(ram_pct),
+        usage_color(ram_pct, theme),
+        theme,
     )];
 
     if mem.swap_total() > 0 {
         let swap_pct = mem.swap_usage_percent();
-        gauge_lines.push(render_gauge("SWP", swap_pct, bar_width, Color::Cyan));
+        gauge_lines.push(render_gauge(
+            "SWP",
+            swap_pct,
+            bar_width,
+            theme.accent,
+            theme,
+        ));
     }
 
     // Add label line showing used/total
@@ -99,7 +116,7 @@ pub fn render(frame: &mut Frame, area: Rect, mem: &MemoryCollector) {
         Line::from(Span::styled(
             ram_label,
             Style::default()
-                .fg(Color::White)
+                .fg(theme.text_primary)
                 .add_modifier(Modifier::BOLD),
         )),
     );
@@ -126,6 +143,6 @@ pub fn render(frame: &mut Frame, area: Rect, mem: &MemoryCollector) {
         )));
     }
 
-    let stats = Paragraph::new(stat_lines).style(Style::default().fg(Color::White));
+    let stats = Paragraph::new(stat_lines).style(Style::default().fg(theme.text_primary));
     frame.render_widget(stats, sections[2]);
 }

@@ -26,6 +26,14 @@ struct Cli {
     /// Generate a default config file and exit
     #[arg(long)]
     generate_config: bool,
+
+    /// Theme name (e.g., dracula, nord, catppuccin-mocha)
+    #[arg(long)]
+    theme: Option<String>,
+
+    /// Layout preset (default, minimal, full, server, laptop, gpu-focus)
+    #[arg(long)]
+    layout: Option<String>,
 }
 
 #[tokio::main]
@@ -40,7 +48,12 @@ async fn main() -> Result<()> {
 
     // Load config: file defaults → CLI overrides
     let mut cfg = config::load()?;
-    config::apply_cli_overrides(&mut cfg, cli.interval);
+    config::apply_cli_overrides(
+        &mut cfg,
+        cli.interval,
+        cli.theme.as_deref(),
+        cli.layout.as_deref(),
+    );
 
     ui::install_panic_hook();
 

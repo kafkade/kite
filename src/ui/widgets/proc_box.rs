@@ -7,6 +7,7 @@ use ratatui::{
 };
 
 use crate::collector::process::{ProcessCollector, ProcessInfo, SortColumn, SortOrder};
+use crate::ui::theme::Theme;
 use crate::util::units::format_bytes;
 
 pub struct ProcessWidget {
@@ -136,22 +137,27 @@ fn truncate(s: &str, max: usize) -> String {
     }
 }
 
-fn cpu_color(cpu: f32) -> Color {
+fn cpu_color(cpu: f32, theme: &Theme) -> Color {
     if cpu > 75.0 {
-        Color::Red
+        theme.critical
     } else if cpu >= 25.0 {
-        Color::Yellow
+        theme.warning
     } else {
-        Color::Green
+        theme.good
     }
 }
 
-fn build_header_line(sort_col: SortColumn, sort_ord: SortOrder, width: u16) -> Line<'static> {
+fn build_header_line(
+    sort_col: SortColumn,
+    sort_ord: SortOrder,
+    width: u16,
+    theme: &Theme,
+) -> Line<'static> {
     let cmd_width = width.saturating_sub(
         COL_PID + COL_NAME + COL_USER + COL_CPU + COL_MEM_PCT + COL_MEM + COL_STATE + COL_THREADS,
     );
     let hdr_style = Style::default()
-        .fg(Color::White)
+        .fg(theme.text_primary)
         .add_modifier(Modifier::BOLD);
 
     let cols: Vec<(String, u16, bool)> = vec![
@@ -270,6 +276,7 @@ fn build_row_spans(
     width: u16,
     selected: bool,
     tree_prefix: &str,
+    theme: &Theme,
 ) -> Line<'static> {
     let cmd_width = width.saturating_sub(
         COL_PID + COL_NAME + COL_USER + COL_CPU + COL_MEM_PCT + COL_MEM + COL_STATE + COL_THREADS,
@@ -284,13 +291,14 @@ fn build_row_spans(
 
     let base_style = if selected {
         Style::default()
-            .bg(Color::DarkGray)
+            .bg(theme.selected_bg)
+            .fg(theme.selected_fg)
             .add_modifier(Modifier::BOLD)
     } else {
         Style::default()
     };
 
-    let cpu_style = base_style.fg(cpu_color(cpu));
+    let cpu_style = base_style.fg(cpu_color(cpu, theme));
 
     let thr_str = threads.map_or("-".to_string(), |t| t.to_string());
     let mem_str = format_bytes(mem_bytes);
@@ -341,6 +349,7 @@ pub fn render(
     area: Rect,
     proc_collector: &ProcessCollector,
     widget: &ProcessWidget,
+    theme: &Theme,
 ) {
     let title = if proc_collector.is_paused() {
         " Processes [PAUSED] "
@@ -351,7 +360,7 @@ pub fn render(
     let outer_block = Block::default()
         .title(title)
         .borders(Borders::ALL)
-        .border_style(Style::default().fg(Color::LightBlue));
+        .border_style(Style::default().fg(theme.accent));
 
     let inner = outer_block.inner(area);
     frame.render_widget(outer_block, area);
@@ -394,6 +403,7 @@ pub fn render(
         proc_collector.sort_column(),
         proc_collector.sort_order(),
         inner.width,
+        theme,
     );
     frame.render_widget(Paragraph::new(header), header_area);
 
@@ -405,7 +415,7 @@ pub fn render(
             let count = proc_collector.processes().len();
             format!("Filter: {} ({} results)", widget.filter_input, count)
         };
-        let filter_line = Line::from(Span::styled(filter_text, Style::default().fg(Color::Cyan)));
+        let filter_line = Line::from(Span::styled(filter_text, Style::default().fg(theme.accent)));
         frame.render_widget(Paragraph::new(filter_line), fa);
     }
 
@@ -437,6 +447,7 @@ pub fn render(
                 inner.width,
                 selected,
                 &prefix,
+                theme,
             ));
         }
     } else {
@@ -457,6 +468,7 @@ pub fn render(
                 inner.width,
                 selected,
                 "",
+                theme,
             ));
         }
     }
@@ -478,7 +490,7 @@ pub fn render(
     );
     let status_line = Line::from(Span::styled(
         status_text,
-        Style::default().fg(Color::DarkGray),
+        Style::default().fg(theme.text_secondary),
     ));
     frame.render_widget(Paragraph::new(status_line), status_area);
 }

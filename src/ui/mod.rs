@@ -10,6 +10,7 @@ pub mod dialog;
 pub mod help;
 pub mod layout;
 pub mod menu;
+pub mod theme;
 pub mod widgets;
 
 pub type Tui = Terminal<CrosstermBackend<Stdout>>;

@@ -1,12 +1,13 @@
 use ratatui::{
     Frame,
     layout::{Alignment, Constraint, Direction, Flex, Layout, Rect},
-    style::{Color, Modifier, Style},
+    style::{Modifier, Style},
     text::{Line, Span},
     widgets::{Block, Borders, Clear, Paragraph},
 };
 
-use crate::config::settings::{Config, GraphSymbols};
+use crate::config::settings::{Config, GraphSymbols, LayoutPreset};
+use crate::ui::theme::{self, Theme};
 
 /// The kind of value a menu item controls.
 #[derive(Debug, Clone)]
@@ -55,6 +56,24 @@ impl SettingsMenu {
             GraphSymbols::Tty => 2,
         };
 
+        let theme_options: Vec<String> = theme::builtin_theme_names()
+            .iter()
+            .map(|s| s.to_string())
+            .collect();
+        let theme_index = theme_options
+            .iter()
+            .position(|t| t == &config.theme)
+            .unwrap_or(0);
+
+        let layout_options: Vec<String> = LayoutPreset::all_names()
+            .iter()
+            .map(|s| s.to_string())
+            .collect();
+        let layout_index = layout_options
+            .iter()
+            .position(|l| l == config.layout.display_name())
+            .unwrap_or(0);
+
         let items = vec![
             MenuItem {
                 label: "Update Interval".to_string(),
@@ -72,6 +91,22 @@ impl SettingsMenu {
                 kind: MenuItemKind::Cycle {
                     options: graph_options,
                     current_index: graph_index,
+                },
+            },
+            MenuItem {
+                label: "Theme".to_string(),
+                value: theme_options[theme_index].clone(),
+                kind: MenuItemKind::Cycle {
+                    options: theme_options,
+                    current_index: theme_index,
+                },
+            },
+            MenuItem {
+                label: "Layout".to_string(),
+                value: layout_options[layout_index].clone(),
+                kind: MenuItemKind::Cycle {
+                    options: layout_options,
+                    current_index: layout_index,
                 },
             },
             MenuItem {
@@ -223,6 +258,28 @@ impl SettingsMenu {
                         };
                     }
                 }
+                "Theme" => {
+                    if let MenuItemKind::Cycle {
+                        options,
+                        current_index,
+                        ..
+                    } = &item.kind
+                    {
+                        config.theme = options[*current_index].to_lowercase();
+                    }
+                }
+                "Layout" => {
+                    if let MenuItemKind::Cycle {
+                        options,
+                        current_index,
+                        ..
+                    } = &item.kind
+                    {
+                        let preset = LayoutPreset::from_name(&options[*current_index]);
+                        config.layout = preset;
+                        preset.apply_to_panels(&mut config.panels);
+                    }
+                }
                 "Show CPU" => {
                     if let MenuItemKind::Toggle { enabled } = &item.kind {
                         config.panels.cpu = *enabled;
@@ -310,7 +367,7 @@ fn centered_rect(width: u16, height: u16, area: Rect) -> Rect {
 }
 
 /// Render the settings menu as a modal overlay.
-pub fn render(frame: &mut Frame, menu: &SettingsMenu) {
+pub fn render(frame: &mut Frame, menu: &SettingsMenu, theme: &Theme) {
     let area = frame.area();
 
     // Clear the entire terminal behind the menu
@@ -325,7 +382,7 @@ pub fn render(frame: &mut Frame, menu: &SettingsMenu) {
     let block = Block::default()
         .title(" Settings ")
         .borders(Borders::ALL)
-        .border_style(Style::default().fg(Color::Cyan));
+        .border_style(Style::default().fg(theme.dialog_border));
 
     let inner = block.inner(menu_area);
     frame.render_widget(block, menu_area);
@@ -353,7 +410,8 @@ pub fn render(frame: &mut Frame, menu: &SettingsMenu) {
 
         let style = if i == menu.selected_index {
             Style::default()
-                .bg(Color::DarkGray)
+                .bg(theme.selected_bg)
+                .fg(theme.selected_fg)
                 .add_modifier(Modifier::BOLD)
         } else {
             Style::default()
@@ -367,7 +425,7 @@ pub fn render(frame: &mut Frame, menu: &SettingsMenu) {
     let footer_idx = chunks.len() - 1;
     let footer = Paragraph::new(Line::from(Span::styled(
         "↑↓ Navigate  ←→ Change  Esc Close  m Close",
-        Style::default().fg(Color::DarkGray),
+        Style::default().fg(theme.text_secondary),
     )))
     .alignment(Alignment::Center);
     frame.render_widget(footer, chunks[footer_idx]);
@@ -382,9 +440,11 @@ mod tests {
     fn from_config_builds_correct_items() {
         let config = Config::default();
         let menu = SettingsMenu::from_config(&config);
-        assert_eq!(menu.items.len(), 9);
+        assert_eq!(menu.items.len(), 11);
         assert_eq!(menu.items[0].label, "Update Interval");
         assert_eq!(menu.items[1].label, "Graph Symbols");
+        assert_eq!(menu.items[2].label, "Theme");
+        assert_eq!(menu.items[3].label, "Layout");
         assert_eq!(menu.selected_index, 0);
     }
 
@@ -393,14 +453,14 @@ mod tests {
         let config = Config::default();
         let mut menu = SettingsMenu::from_config(&config);
         menu.move_up();
-        assert_eq!(menu.selected_index, 8);
+        assert_eq!(menu.selected_index, 10);
     }
 
     #[test]
     fn move_down_wraps() {
         let config = Config::default();
         let mut menu = SettingsMenu::from_config(&config);
-        menu.selected_index = 8;
+        menu.selected_index = 10;
         menu.move_down();
         assert_eq!(menu.selected_index, 0);
     }
@@ -450,9 +510,9 @@ mod tests {
     fn toggle_flips() {
         let config = Config::default();
         let mut menu = SettingsMenu::from_config(&config);
-        menu.selected_index = 2; // Show CPU
+        menu.selected_index = 4; // Show CPU
         menu.increment();
-        if let MenuItemKind::Toggle { enabled } = &menu.items[2].kind {
+        if let MenuItemKind::Toggle { enabled } = &menu.items[4].kind {
             assert!(!enabled); // was true, now false
         } else {
             panic!("expected Toggle");
@@ -471,8 +531,8 @@ mod tests {
         menu.selected_index = 1;
         menu.increment(); // Braille -> Block
 
-        // Disable CPU panel
-        menu.selected_index = 2;
+        // Disable CPU panel (index 4 now)
+        menu.selected_index = 4;
         menu.increment(); // true -> false
 
         menu.apply_to_config(&mut config);
