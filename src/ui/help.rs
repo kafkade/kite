@@ -61,6 +61,10 @@ fn build_help_lines<'a>(theme: &Theme) -> Vec<Line<'a>> {
         key_line("  Tab", "Next panel", theme),
         key_line("  Shift+Tab", "Previous panel", theme),
         Line::from(""),
+        // Remote section
+        section_header("Remote Monitoring", theme),
+        key_line("  [[remotes]]", "Configure in config.toml", theme),
+        Line::from(""),
         // Footer hint
         Line::from(Span::styled(
             "Press ? to close",

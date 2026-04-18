@@ -9,6 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- SSH remote monitoring — connect to remote Linux machines via SSH and monitor CPU, memory, disk, network, and uptime in real time
+- `[[remotes]]` TOML configuration for defining remote machines with name, host, port, user, and SSH key path
+- Remote monitoring panel showing a table of all remote hosts with connection status (●/○/✗), metrics, latency, and uptime
+- Aggregate view in remote panel footer showing connected host count, average CPU, and total memory across all remotes
+- Automatic reconnection with exponential backoff (1s → 60s) when SSH connections drop
+- Lightweight agent script executed over SSH — no binary deployment needed on remote hosts
+- Connection health indicator with latency measurement per host
+- Color-coded connection status: green (connected), yellow (connecting), red (error), gray (disconnected)
+- `ssh` feature flag for optional SSH dependency (opt-in, requires `--features ssh`)
+- `remote_border` color in all 11 built-in themes and custom TOML theme files
+- Remote panel visibility in "Full" and "Server" layout presets
+- Remote monitoring section in help overlay
 - Hardware temperature monitoring via Sensors panel showing per-component temps with color-coded thresholds (green/yellow/red) and CPU temperature sparkline history
 - GPU monitoring panel with NVIDIA support via NVML — shows utilization, VRAM usage, temperature, fan speed, clock speeds, and power draw
 - Multi-GPU detection with primary GPU details and device count indicator

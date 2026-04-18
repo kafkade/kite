@@ -12,6 +12,7 @@ use crate::collector::k8s::K8sCollector;
 use crate::collector::memory::MemoryCollector;
 use crate::collector::network::NetworkCollector;
 use crate::collector::process::ProcessCollector;
+use crate::collector::remote::RemoteCollector;
 use crate::collector::sensor::SensorCollector;
 use crate::config::keybindings::KeyBindings;
 use crate::config::settings::Config;
@@ -21,6 +22,7 @@ use crate::ui::theme::{self, Theme};
 use crate::ui::widgets::container_box::ContainerWidget;
 use crate::ui::widgets::k8s_box::K8sWidget;
 use crate::ui::widgets::proc_box::ProcessWidget;
+use crate::ui::widgets::remote_box::RemoteWidget;
 
 /// Application state machine.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -60,6 +62,8 @@ pub struct App {
     pub battery: BatteryCollector,
     pub k8s: K8sCollector,
     pub k8s_widget: K8sWidget,
+    pub remote: RemoteCollector,
+    pub remote_widget: RemoteWidget,
     pub dialog: Option<ConfirmDialog>,
     pub menu: Option<SettingsMenu>,
     pub theme: Theme,
@@ -85,6 +89,7 @@ impl App {
         let mut gpu = GpuCollector::new(history_depth);
         let mut battery = BatteryCollector::new();
         let mut k8s = K8sCollector::new();
+        let mut remote = RemoteCollector::new(&config.remotes, history_depth);
 
         // Initial collection so first render has data
         let _ = cpu.collect();
@@ -97,6 +102,7 @@ impl App {
         let _ = gpu.collect();
         let _ = battery.collect();
         let _ = k8s.collect();
+        let _ = remote.collect();
 
         let theme = theme::get_builtin_theme(&config.theme).unwrap_or_else(theme::default_theme);
 
@@ -128,6 +134,8 @@ impl App {
             battery,
             k8s,
             k8s_widget: K8sWidget::new(),
+            remote,
+            remote_widget: RemoteWidget::new(),
             dialog: None,
             menu: None,
             theme,
@@ -147,6 +155,7 @@ impl App {
         let _ = self.gpu.collect();
         let _ = self.battery.collect();
         let _ = self.k8s.collect();
+        let _ = self.remote.collect();
 
         // Evaluate alert rules
         let metrics = self.collect_alert_metrics();
