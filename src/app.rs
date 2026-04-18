@@ -3,9 +3,11 @@ use std::time::Instant;
 use crate::collector::Collector;
 use crate::collector::cpu::CpuCollector;
 use crate::collector::disk::DiskCollector;
+use crate::collector::gpu::GpuCollector;
 use crate::collector::memory::MemoryCollector;
 use crate::collector::network::NetworkCollector;
 use crate::collector::process::ProcessCollector;
+use crate::collector::sensor::SensorCollector;
 use crate::config::keybindings::KeyBindings;
 use crate::config::settings::Config;
 use crate::ui::dialog::ConfirmDialog;
@@ -43,6 +45,8 @@ pub struct App {
     pub net: NetworkCollector,
     pub proc_collector: ProcessCollector,
     pub proc_widget: ProcessWidget,
+    pub sensor: SensorCollector,
+    pub gpu: GpuCollector,
     pub dialog: Option<ConfirmDialog>,
     pub menu: Option<SettingsMenu>,
 }
@@ -61,6 +65,8 @@ impl App {
         let mut disk = DiskCollector::new(history_depth);
         let mut net = NetworkCollector::new(history_depth);
         let mut proc_collector = ProcessCollector::new();
+        let mut sensor = SensorCollector::new(history_depth);
+        let mut gpu = GpuCollector::new(history_depth);
 
         // Initial collection so first render has data
         let _ = cpu.collect();
@@ -68,6 +74,8 @@ impl App {
         let _ = disk.collect();
         let _ = net.collect();
         let _ = proc_collector.collect();
+        let _ = sensor.collect();
+        let _ = gpu.collect();
 
         Self {
             state: AppState::Running,
@@ -83,6 +91,8 @@ impl App {
             net,
             proc_collector,
             proc_widget: ProcessWidget::new(),
+            sensor,
+            gpu,
             dialog: None,
             menu: None,
         }
@@ -95,6 +105,8 @@ impl App {
         let _ = self.disk.collect();
         let _ = self.net.collect();
         let _ = self.proc_collector.collect();
+        let _ = self.sensor.collect();
+        let _ = self.gpu.collect();
     }
 
     /// Open the help overlay.
@@ -161,7 +173,6 @@ impl App {
         self.config.update_interval_ms
     }
 
-    #[allow(dead_code)]
     pub fn config(&self) -> &Config {
         &self.config
     }

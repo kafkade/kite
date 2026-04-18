@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ### Added
 
+- Hardware temperature monitoring via Sensors panel showing per-component temps with color-coded thresholds (green/yellow/red) and CPU temperature sparkline history
+- GPU monitoring panel with NVIDIA support via NVML — shows utilization, VRAM usage, temperature, fan speed, clock speeds, and power draw
+- Multi-GPU detection with primary GPU details and device count indicator
+- Adaptive layout that dynamically adds/removes the GPU & Sensors row based on panel visibility settings
+- "Show GPU" and "Show Sensors" toggles in the settings menu (`m`)
+- `gpu` and `sensors` fields in panel visibility configuration (TOML)
+- Graceful degradation: "No GPU detected" and "No sensors detected" when hardware is unavailable
+- `gpu` feature flag in Cargo.toml for optional NVIDIA NVML dependency (enabled by default)
 - Project website at `kite.kafkade.com` with brand kit, downloads, and feature overview
 - Light and dark theme toggle with cookie persistence
 - Interactive terminal mockup showing kite's dashboard output

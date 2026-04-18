@@ -7,7 +7,7 @@ use ratatui::{
 };
 
 use crate::app::{App, InputMode};
-use crate::ui::widgets::{cpu_box, disk_box, mem_box, net_box, proc_box};
+use crate::ui::widgets::{cpu_box, disk_box, gpu_box, mem_box, net_box, proc_box, sensor_box};
 
 /// Render the full application layout.
 pub fn render(frame: &mut Frame, app: &App) {
@@ -42,35 +42,101 @@ pub fn render(frame: &mut Frame, app: &App) {
     }
 }
 
-/// Render the main content area with 3-row layout:
-/// CPU | Memory (top row, ~30%)
-/// Network | Disk (middle row, ~25%)
-/// Processes (bottom row, ~45%)
+/// Render the main content area with adaptive layout.
+/// When GPU or Sensors panels are visible, a hardware row is added.
+/// Otherwise the original 3-row layout is used.
 fn render_main_area(frame: &mut Frame, area: Rect, app: &App) {
+    let panels = &app.config().panels;
+    let show_hw_row = panels.gpu || panels.sensors;
+
+    let mut constraints = Vec::new();
+    let mut row_ids: Vec<&str> = Vec::new();
+
+    // Row: CPU + Memory
+    if panels.cpu || panels.memory {
+        constraints.push(if show_hw_row {
+            Constraint::Percentage(25)
+        } else {
+            Constraint::Percentage(30)
+        });
+        row_ids.push("cpu_mem");
+    }
+
+    // Row: Network + Disk
+    if panels.network || panels.disk {
+        constraints.push(if show_hw_row {
+            Constraint::Percentage(20)
+        } else {
+            Constraint::Percentage(25)
+        });
+        row_ids.push("net_disk");
+    }
+
+    // Row: GPU + Sensors (only if at least one is enabled)
+    if show_hw_row {
+        constraints.push(Constraint::Percentage(20));
+        row_ids.push("hw");
+    }
+
+    // Row: Processes (always takes remaining space)
+    if panels.processes {
+        constraints.push(Constraint::Min(5));
+        row_ids.push("proc");
+    }
+
+    if constraints.is_empty() {
+        return;
+    }
+
     let rows = Layout::default()
         .direction(Direction::Vertical)
-        .constraints([
-            Constraint::Percentage(30), // CPU + Memory
-            Constraint::Percentage(25), // Network + Disk
-            Constraint::Percentage(45), // Processes
-        ])
+        .constraints(constraints)
         .split(area);
 
-    let top_cols = Layout::default()
-        .direction(Direction::Horizontal)
-        .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
-        .split(rows[0]);
-
-    let mid_cols = Layout::default()
-        .direction(Direction::Horizontal)
-        .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
-        .split(rows[1]);
-
-    cpu_box::render(frame, top_cols[0], &app.cpu);
-    mem_box::render(frame, top_cols[1], &app.mem);
-    net_box::render(frame, mid_cols[0], &app.net);
-    disk_box::render(frame, mid_cols[1], &app.disk);
-    proc_box::render(frame, rows[2], &app.proc_collector, &app.proc_widget);
+    for (i, &row_id) in row_ids.iter().enumerate() {
+        match row_id {
+            "cpu_mem" => {
+                let cols = Layout::default()
+                    .direction(Direction::Horizontal)
+                    .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
+                    .split(rows[i]);
+                if panels.cpu {
+                    cpu_box::render(frame, cols[0], &app.cpu);
+                }
+                if panels.memory {
+                    mem_box::render(frame, cols[1], &app.mem);
+                }
+            }
+            "net_disk" => {
+                let cols = Layout::default()
+                    .direction(Direction::Horizontal)
+                    .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
+                    .split(rows[i]);
+                if panels.network {
+                    net_box::render(frame, cols[0], &app.net);
+                }
+                if panels.disk {
+                    disk_box::render(frame, cols[1], &app.disk);
+                }
+            }
+            "hw" => {
+                let cols = Layout::default()
+                    .direction(Direction::Horizontal)
+                    .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
+                    .split(rows[i]);
+                if panels.gpu {
+                    gpu_box::render(frame, cols[0], &app.gpu);
+                }
+                if panels.sensors {
+                    sensor_box::render(frame, cols[1], &app.sensor);
+                }
+            }
+            "proc" => {
+                proc_box::render(frame, rows[i], &app.proc_collector, &app.proc_widget);
+            }
+            _ => {}
+        }
+    }
 }
 
 /// Render the bottom status bar.
