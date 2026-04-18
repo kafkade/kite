@@ -12,7 +12,7 @@ A modern, cross-platform TUI system resource monitor written in Rust — inspire
 
 Kite gives you a real-time, interactive terminal dashboard for CPU, memory, disk, network, GPU, containers, and processes — with full keyboard/mouse control, customizable themes and layouts, configurable alerts, and remote monitoring over SSH.
 
-> **Status**: ✅ v1.0.0 stable — Phase 1 complete. All core metrics, process management, help overlay, and settings menu are live.
+> **Status**: ✅ Phases 1–3 complete. Core metrics, GPU/sensors, theming, containers, alerts, and advanced process features are all live.
 
 ---
 
@@ -20,11 +20,17 @@ Kite gives you a real-time, interactive terminal dashboard for CPU, memory, disk
 
 ### Core Dashboard
 
-- Real-time CPU monitoring (total + per-core, frequency, load averages) with braille graphs
+- Real-time CPU monitoring (total + per-core, frequency, load averages) with sparkline graphs
 - Memory & swap usage with historical graphs and bar gauges
 - Disk I/O rates and filesystem usage
 - Network interface traffic with auto-scaling graphs
-- 5-panel layout (CPU, memory, disk, network, process table)
+- Adaptive multi-panel layout (CPU, memory, disk, network, process table, and more)
+
+### Hardware Sensors & GPU
+
+- Temperature monitoring via Sensors panel (per-component temps, color-coded thresholds, CPU temp sparkline)
+- GPU monitoring panel with NVIDIA NVML support (utilization, VRAM, temp, fan speed, clocks, power draw)
+- Battery monitoring in the status bar (charge %, state, power draw) — desktops degrade gracefully
 
 ### Process Management
 
@@ -32,19 +38,54 @@ Kite gives you a real-time, interactive terminal dashboard for CPU, memory, disk
 - Process signals (SIGTERM, SIGKILL, SIGSTOP, SIGCONT) and renice
 - Confirmation dialogs for destructive actions
 - Vim-style navigation (`j`/`k`) and keyboard-driven workflow
+- Per-process disk I/O stats (read/write bytes columns)
+- Top-N mode: cycle All → Top 10 → Top 25 → Top 50 (`n` key)
+- Process bookmarks: pin processes to the top with `b` key (`*` indicator)
+
+### Container Monitoring
+
+- Docker containers: name, image, status, CPU%, memory, net I/O, block I/O
+- Docker actions: start, stop, restart
+- Kubernetes pods: name, namespace, status, ready, restarts, age, node, resource requests/limits
+- Namespace filtering for K8s
+- Docker + K8s share a layout row (side-by-side when both enabled)
+
+### Alert System
+
+- Configurable alert rules in TOML (metric, condition, threshold, duration, severity)
+- 7 metrics: CPU total, memory %, swap %, disk %, CPU temp, GPU temp, GPU utilization
+- 3 severities: Info, Warning, Critical
+- Status bar indicator with severity-colored alerts
+- Terminal bell on critical alerts
+- Alert history (last 100)
+- Default rules: High CPU (>90%), Critical CPU (>95%), High Memory (>90%)
+
+### Themes
+
+11 built-in themes — switch with the settings menu or `--theme` CLI flag:
+
+`default` · `dracula` · `gruvbox-dark` · `catppuccin-mocha` · `catppuccin-latte` · `nord` · `solarized-dark` · `solarized-light` · `tokyo-night` · `one-dark` · `monokai`
+
+Custom themes can be added as TOML files in `~/.config/kite/themes/`.
+
+### Layout Presets
+
+6 layout presets — switch with the settings menu or `--layout` CLI flag:
+
+`default` · `minimal` · `full` · `server` · `laptop` · `gpu-focus`
+
+The layout engine adaptively adds or removes rows based on panel visibility.
 
 ### UI & Configuration
 
 - Help overlay (`?`) showing all keybindings
-- In-app settings menu (`m`) — adjust update interval, graph symbols, toggle panels at runtime
+- In-app settings menu (`m`) — adjust update interval, graph symbols, toggle panels, switch themes/layouts at runtime
 - TOML-based configuration with CLI argument overrides
 - Configurable update interval and keybindings
 - Input mode system with status bar indicators
 
 ### Planned
 
-- **Phase 2**: GPU monitoring, hardware sensors, theming engine
-- **Phase 3**: Docker/Kubernetes container monitoring, alerts
 - **Phase 4**: SSH remote monitoring, Prometheus export
 - **Phase 5**: Accessibility, i18n, platform packaging
 
@@ -71,27 +112,32 @@ cargo build --release
 kite [OPTIONS]
 
 Options:
-  -i, --interval <MS>  Update interval in milliseconds [default: 1000]
-  -h, --help           Print help
-  -V, --version        Print version
+  -i, --interval <MS>      Update interval in milliseconds [default: 1000]
+      --theme <NAME>       Theme name (e.g., dracula, nord, catppuccin-mocha)
+      --layout <PRESET>    Layout preset (default, minimal, full, server, laptop, gpu-focus)
+      --generate-config    Generate a default config file and exit
+  -h, --help               Print help
+  -V, --version            Print version
 ```
 
 ### Keyboard Shortcuts
 
-| Key                | Action                        |
-| ------------------ | ----------------------------- |
-| `q` / `Ctrl+C`     | Quit                          |
-| `?`                | Toggle help overlay           |
-| `m`                | Toggle settings menu          |
-| `r`                | Force refresh                 |
-| `↑`/`↓` or `j`/`k` | Scroll process list           |
-| `←`/`→`            | Change sort column            |
-| `Space`            | Pause/unpause process updates |
-| `/`                | Filter processes              |
-| `t`                | Toggle tree view              |
-| `K`                | Kill selected process         |
-| `PgUp`/`PgDn`      | Page scroll                   |
-| `Esc`              | Close overlay / clear filter  |
+| Key                 | Action                              |
+| ------------------- | ----------------------------------- |
+| `q` / `Ctrl+C`      | Quit                                |
+| `?`                 | Toggle help overlay                 |
+| `m`                 | Toggle settings menu                |
+| `r`                 | Force refresh                       |
+| `↑`/`↓` or `j`/`k`  | Scroll process list                 |
+| `←`/`→`             | Change sort column                  |
+| `Space`             | Pause/unpause process updates       |
+| `/`                 | Filter processes                    |
+| `t`                 | Toggle tree view                    |
+| `n`                 | Cycle Top-N mode (All/10/25/50)     |
+| `b`                 | Toggle bookmark on selected process |
+| `K`                 | Kill selected process               |
+| `PgUp`/`PgDn`       | Page scroll                         |
+| `Esc`               | Close overlay / clear filter        |
 
 ---
 
@@ -104,6 +150,47 @@ Kite uses a TOML config file located at:
 
 You can also adjust settings at runtime via the settings menu (`m`).
 
+### Feature Flags
+
+Kite uses Cargo feature flags to control optional integrations:
+
+| Feature   | Default | Description                               |
+| --------- | ------- | ----------------------------------------- |
+| `gpu`     | ✅      | NVIDIA GPU monitoring via nvml-wrapper    |
+| `battery` | ✅      | Battery monitoring via starship-battery   |
+| `docker`  | ✅      | Docker container monitoring via bollard   |
+| `k8s`     | ❌      | Kubernetes pod monitoring via kube-rs     |
+
+Build with or without specific features:
+
+```bash
+cargo build --release                        # All default features
+cargo build --release --features k8s         # Add Kubernetes support
+cargo build --release --no-default-features  # Minimal build
+```
+
+### Alert Configuration
+
+Define alert rules in your config file:
+
+```toml
+[[alerts]]
+metric = "cpu_total"
+condition = "above"
+threshold = 90.0
+duration_secs = 10
+severity = "warning"
+
+[[alerts]]
+metric = "memory_percent"
+condition = "above"
+threshold = 95.0
+duration_secs = 5
+severity = "critical"
+```
+
+Supported metrics: `cpu_total`, `memory_percent`, `swap_percent`, `disk_percent`, `cpu_temp`, `gpu_temp`, `gpu_utilization`.
+
 ---
 
 ## Architecture
@@ -112,14 +199,31 @@ You can also adjust settings at runtime via the settings menu (`m`).
 src/
 ├── main.rs              # Entry point, CLI args (clap), async event loop
 ├── app.rs               # Application state machine, input modes
+├── alert/               # Alert engine and rules
+│   ├── mod.rs           # AlertEngine evaluation
+│   └── rules.rs         # Metric, Condition, Severity, AlertRule
 ├── config/              # TOML config loading, keybindings
-├── collector/           # Data collection (CPU, memory, disk, network, process)
+├── collector/           # Data collectors
+│   ├── cpu.rs           # CPU metrics
+│   ├── memory.rs        # RAM + swap
+│   ├── disk.rs          # Disk I/O + usage
+│   ├── network.rs       # Network interfaces
+│   ├── process.rs       # Processes (with I/O, bookmarks, top-N)
+│   ├── sensor.rs        # Temperature sensors
+│   ├── gpu.rs           # GPU metrics (NVIDIA)
+│   ├── battery.rs       # Battery status
+│   ├── docker.rs        # Docker containers
+│   └── k8s.rs           # Kubernetes pods
 ├── ui/
-│   ├── layout.rs        # Layout engine and rendering
+│   ├── layout.rs        # Adaptive layout engine
+│   ├── theme.rs         # Theme engine (11 built-in themes)
 │   ├── help.rs          # Help overlay (? key)
-│   ├── menu.rs          # In-app settings menu (m key)
+│   ├── menu.rs          # Settings menu (m key)
 │   ├── dialog.rs        # Confirmation dialogs
-│   └── widgets/         # Individual panel widgets (cpu_box, mem_box, etc.)
+│   └── widgets/         # Panel widgets
+│       ├── cpu_box.rs, mem_box.rs, disk_box.rs, net_box.rs
+│       ├── gpu_box.rs, sensor_box.rs
+│       └── proc_box.rs, container_box.rs, k8s_box.rs
 ├── input/               # Keyboard event handling with input modes
 └── util/                # Ring buffer, unit formatting, error types
 ```
@@ -148,15 +252,19 @@ For maintainers: see [Releasing](docs/RELEASING.md) for the release process.
 
 ## Tech Stack
 
-| Component   | Technology          |
-| ----------- | ------------------- |
-| Language    | Rust (edition 2024) |
-| TUI         | ratatui + crossterm |
-| Async       | tokio               |
-| System data | sysinfo             |
-| CLI         | clap (derive)       |
-| Config      | serde + toml        |
-| Errors      | thiserror + anyhow  |
+| Component   | Technology                            |
+| ----------- | ------------------------------------- |
+| Language    | Rust (edition 2024)                   |
+| TUI         | ratatui + crossterm                   |
+| Async       | tokio                                 |
+| System data | sysinfo                               |
+| GPU         | nvml-wrapper (optional)               |
+| Battery     | starship-battery (optional)           |
+| Docker      | bollard (optional)                    |
+| Kubernetes  | kube-rs + k8s-openapi (optional)      |
+| CLI         | clap (derive)                         |
+| Config      | serde + toml                          |
+| Errors      | thiserror + anyhow                    |
 
 ---
 
