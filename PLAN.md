@@ -16,7 +16,7 @@
 | 5 | Process Table | ✅ Done |
 | 6 | Polish & Help | ✅ Done |
 
-**47 tests passing** · 5-panel dashboard · Help overlay · Settings menu
+**47 tests** (102+ total across all phases) · 5-panel dashboard · Help overlay · Settings menu
 
 ## OSS Infrastructure ✅
 
@@ -45,11 +45,32 @@ All tracked as GitHub Issues with full context:
 - [#33](https://github.com/kafkade/kite/issues/33) — Contributor recognition
 - [#34](https://github.com/kafkade/kite/issues/34) — Governance doc
 
+## Phase 2: Hardware Sensors, GPU & Theming ✅
+
+| # | Feature | Issue | Status |
+|---|---------|-------|--------|
+| 1 | Temperature & hardware sensors | #6 | ✅ Done |
+| 2 | GPU monitoring (NVIDIA) | #7 | ✅ Done |
+| 3 | Battery monitoring | #8 | ✅ Done |
+| 4 | Theming engine (11 themes) | #9 | ✅ Done |
+| 5 | Custom layouts & presets | #10 | ✅ Done |
+
+**102+ tests passing** · Sensors + GPU + Battery panels · 11 built-in themes · 6 layout presets · `--theme` and `--layout` CLI flags
+
+## Phase 3: Containers, Alerts & Process Intelligence ✅
+
+| # | Feature | Issue | Status |
+|---|---------|-------|--------|
+| 1 | Docker container monitoring | #11 | ✅ Done |
+| 2 | Kubernetes pod monitoring | #12 | ✅ Done |
+| 3 | Alert system | #13 | ✅ Done |
+| 4 | Advanced process features | #14 | ✅ Done |
+
+**102+ tests passing** · Docker + K8s panels · Configurable alerts · Per-process I/O · Top-N mode · Process bookmarks
+
 ## Upcoming Feature Phases
 
 See [GitHub Milestones](https://github.com/kafkade/kite/milestones) for detailed tracking:
 
-- **Phase 2**: Hardware Sensors, GPU & Theming
-- **Phase 3**: Containers, Alerts & Process Intelligence
 - **Phase 4**: Remote Monitoring & Metrics Export
 - **Phase 5**: Polish, Accessibility & Distribution
