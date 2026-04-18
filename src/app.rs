@@ -1,5 +1,7 @@
+use std::collections::HashMap;
 use std::time::Instant;
 
+use crate::alert::{AlertEngine, Metric};
 use crate::collector::Collector;
 use crate::collector::battery::BatteryCollector;
 use crate::collector::cpu::CpuCollector;
@@ -61,6 +63,7 @@ pub struct App {
     pub dialog: Option<ConfirmDialog>,
     pub menu: Option<SettingsMenu>,
     pub theme: Theme,
+    pub alerts: AlertEngine,
 }
 
 impl App {
@@ -97,6 +100,13 @@ impl App {
 
         let theme = theme::get_builtin_theme(&config.theme).unwrap_or_else(theme::default_theme);
 
+        let alert_rules = if config.alerts.is_empty() {
+            Config::default_alert_rules()
+        } else {
+            config.alerts.clone()
+        };
+        let alerts = AlertEngine::new(alert_rules, 100);
+
         Self {
             state: AppState::Running,
             input_mode: InputMode::Normal,
@@ -121,6 +131,7 @@ impl App {
             dialog: None,
             menu: None,
             theme,
+            alerts,
         }
     }
 
@@ -136,6 +147,33 @@ impl App {
         let _ = self.gpu.collect();
         let _ = self.battery.collect();
         let _ = self.k8s.collect();
+
+        // Evaluate alert rules
+        let metrics = self.collect_alert_metrics();
+        self.alerts.evaluate(&metrics);
+    }
+
+    /// Collect current metric values for alert evaluation.
+    fn collect_alert_metrics(&self) -> HashMap<Metric, f64> {
+        let mut metrics = HashMap::new();
+        metrics.insert(Metric::CpuTotal, self.cpu.total_usage());
+        metrics.insert(Metric::MemoryPercent, self.mem.ram_usage_percent());
+        metrics.insert(Metric::SwapPercent, self.mem.swap_usage_percent());
+
+        if let Some(temp) = self.sensor.cpu_temp() {
+            metrics.insert(Metric::CpuTemperature, temp as f64);
+        }
+
+        if let Some(dev) = self.gpu.devices().first() {
+            if let Some(temp) = dev.temperature {
+                metrics.insert(Metric::GpuTemperature, temp as f64);
+            }
+            if let Some(util) = dev.utilization_gpu {
+                metrics.insert(Metric::GpuUtilization, util as f64);
+            }
+        }
+
+        metrics
     }
 
     /// Open the help overlay.

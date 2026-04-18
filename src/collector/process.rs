@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use anyhow::{Context, Result};
 use sysinfo::{Pid, ProcessesToUpdate, System};
@@ -17,6 +17,8 @@ pub struct ProcessInfo {
     pub parent_pid: Option<u32>,
     pub command: String,
     pub threads: Option<u32>,
+    pub disk_read_bytes: u64,
+    pub disk_write_bytes: u64,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -63,6 +65,8 @@ pub struct ProcessCollector {
     sort_order: SortOrder,
     filter: Option<String>,
     paused: bool,
+    top_n: Option<usize>,
+    bookmarks: HashSet<u32>,
 }
 
 #[allow(dead_code)]
@@ -76,6 +80,8 @@ impl ProcessCollector {
             sort_order: SortOrder::Descending,
             filter: None,
             paused: false,
+            top_n: None,
+            bookmarks: HashSet::new(),
         }
     }
 
@@ -146,6 +152,47 @@ impl ProcessCollector {
 
     pub fn is_paused(&self) -> bool {
         self.paused
+    }
+
+    pub fn set_top_n(&mut self, n: Option<usize>) {
+        self.top_n = n;
+        self.apply_filter_and_sort();
+    }
+
+    pub fn top_n(&self) -> Option<usize> {
+        self.top_n
+    }
+
+    pub fn cycle_top_n(&mut self) {
+        self.top_n = match self.top_n {
+            None => Some(10),
+            Some(10) => Some(25),
+            Some(25) => Some(50),
+            _ => None,
+        };
+        self.apply_filter_and_sort();
+    }
+
+    pub fn toggle_bookmark(&mut self, pid: u32) {
+        if self.bookmarks.contains(&pid) {
+            self.bookmarks.remove(&pid);
+        } else {
+            self.bookmarks.insert(pid);
+        }
+        self.apply_filter_and_sort();
+    }
+
+    pub fn is_bookmarked(&self, pid: u32) -> bool {
+        self.bookmarks.contains(&pid)
+    }
+
+    pub fn bookmarks(&self) -> &HashSet<u32> {
+        &self.bookmarks
+    }
+
+    pub fn clear_bookmarks(&mut self) {
+        self.bookmarks.clear();
+        self.apply_filter_and_sort();
     }
 
     pub fn kill_process(&self, pid: u32) -> Result<()> {
@@ -244,6 +291,26 @@ impl ProcessCollector {
         });
 
         self.filtered = list;
+
+        // Move bookmarked processes to the top (both groups keep their sort order)
+        if !self.bookmarks.is_empty() {
+            let mut bookmarked: Vec<ProcessInfo> = Vec::new();
+            let mut unbookmarked: Vec<ProcessInfo> = Vec::new();
+            for p in self.filtered.drain(..) {
+                if self.bookmarks.contains(&p.pid) {
+                    bookmarked.push(p);
+                } else {
+                    unbookmarked.push(p);
+                }
+            }
+            self.filtered = bookmarked;
+            self.filtered.extend(unbookmarked);
+        }
+
+        // Truncate to top_n if set
+        if let Some(n) = self.top_n {
+            self.filtered.truncate(n);
+        }
     }
 }
 
@@ -278,6 +345,8 @@ impl Collector for ProcessCollector {
                 .join(" ");
             let threads = process.tasks().map(|t| t.len() as u32);
 
+            let disk_usage = process.disk_usage();
+
             let user = match process.user_id() {
                 Some(uid) => format!("{uid:?}"),
                 None => "N/A".to_string(),
@@ -294,6 +363,8 @@ impl Collector for ProcessCollector {
                 parent_pid,
                 command,
                 threads,
+                disk_read_bytes: disk_usage.total_read_bytes,
+                disk_write_bytes: disk_usage.total_written_bytes,
             });
         }
 
@@ -389,5 +460,67 @@ mod tests {
         assert!(!tree.is_empty());
         // Root nodes should have depth 0
         assert_eq!(tree[0].depth, 0);
+    }
+
+    #[test]
+    fn test_top_n_truncates() {
+        let mut collector = ProcessCollector::new();
+        collector.collect().unwrap();
+        collector.set_top_n(Some(5));
+        assert!(collector.processes().len() <= 5);
+    }
+
+    #[test]
+    fn test_top_n_cycle() {
+        let mut collector = ProcessCollector::new();
+        assert_eq!(collector.top_n(), None);
+        collector.cycle_top_n();
+        assert_eq!(collector.top_n(), Some(10));
+        collector.cycle_top_n();
+        assert_eq!(collector.top_n(), Some(25));
+        collector.cycle_top_n();
+        assert_eq!(collector.top_n(), Some(50));
+        collector.cycle_top_n();
+        assert_eq!(collector.top_n(), None);
+    }
+
+    #[test]
+    fn test_bookmark_toggle() {
+        let mut collector = ProcessCollector::new();
+        assert!(!collector.is_bookmarked(1234));
+        collector.toggle_bookmark(1234);
+        assert!(collector.is_bookmarked(1234));
+        collector.toggle_bookmark(1234);
+        assert!(!collector.is_bookmarked(1234));
+    }
+
+    #[test]
+    fn test_bookmarked_processes_first() {
+        let mut collector = ProcessCollector::new();
+        collector.collect().unwrap();
+
+        let procs = collector.processes();
+        if procs.len() < 3 {
+            return; // not enough processes to test ordering
+        }
+
+        // Bookmark the last process in the current list
+        let last_pid = procs[procs.len() - 1].pid;
+        collector.toggle_bookmark(last_pid);
+
+        // After re-sorting, the bookmarked process should be first
+        let procs = collector.processes();
+        assert_eq!(procs[0].pid, last_pid);
+    }
+
+    #[test]
+    fn test_io_fields_present() {
+        let mut collector = ProcessCollector::new();
+        collector.collect().unwrap();
+        // I/O fields should exist on every process (values may be 0)
+        for p in collector.processes() {
+            let _ = p.disk_read_bytes;
+            let _ = p.disk_write_bytes;
+        }
     }
 }

@@ -2,6 +2,8 @@ use std::collections::HashMap;
 
 use serde::{Deserialize, Serialize};
 
+use crate::alert::rules::{AlertRule, Condition, Metric, Severity};
+
 /// Graph symbol set for rendering charts.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 #[serde(rename_all = "lowercase")]
@@ -211,6 +213,9 @@ pub struct Config {
 
     #[serde(default)]
     pub layout: LayoutPreset,
+
+    #[serde(default)]
+    pub alerts: Vec<AlertRule>,
 }
 
 impl Default for Config {
@@ -224,7 +229,43 @@ impl Default for Config {
             keybindings: HashMap::new(),
             theme: default_theme(),
             layout: LayoutPreset::default(),
+            alerts: Vec::new(),
         }
+    }
+}
+
+impl Config {
+    /// Sensible default alert rules used when no custom alerts are configured.
+    pub fn default_alert_rules() -> Vec<AlertRule> {
+        vec![
+            AlertRule {
+                name: "High CPU".to_string(),
+                metric: Metric::CpuTotal,
+                condition: Condition::Above,
+                threshold: 90.0,
+                duration_ticks: 5,
+                severity: Severity::Warning,
+                enabled: true,
+            },
+            AlertRule {
+                name: "Critical CPU".to_string(),
+                metric: Metric::CpuTotal,
+                condition: Condition::Above,
+                threshold: 95.0,
+                duration_ticks: 3,
+                severity: Severity::Critical,
+                enabled: true,
+            },
+            AlertRule {
+                name: "High Memory".to_string(),
+                metric: Metric::MemoryPercent,
+                condition: Condition::Above,
+                threshold: 90.0,
+                duration_ticks: 5,
+                severity: Severity::Warning,
+                enabled: true,
+            },
+        ]
     }
 }
 
