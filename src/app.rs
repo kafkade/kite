@@ -4,7 +4,9 @@ use crate::collector::Collector;
 use crate::collector::battery::BatteryCollector;
 use crate::collector::cpu::CpuCollector;
 use crate::collector::disk::DiskCollector;
+use crate::collector::docker::DockerCollector;
 use crate::collector::gpu::GpuCollector;
+use crate::collector::k8s::K8sCollector;
 use crate::collector::memory::MemoryCollector;
 use crate::collector::network::NetworkCollector;
 use crate::collector::process::ProcessCollector;
@@ -14,6 +16,8 @@ use crate::config::settings::Config;
 use crate::ui::dialog::ConfirmDialog;
 use crate::ui::menu::SettingsMenu;
 use crate::ui::theme::{self, Theme};
+use crate::ui::widgets::container_box::ContainerWidget;
+use crate::ui::widgets::k8s_box::K8sWidget;
 use crate::ui::widgets::proc_box::ProcessWidget;
 
 /// Application state machine.
@@ -47,9 +51,13 @@ pub struct App {
     pub net: NetworkCollector,
     pub proc_collector: ProcessCollector,
     pub proc_widget: ProcessWidget,
+    pub docker: DockerCollector,
+    pub container_widget: ContainerWidget,
     pub sensor: SensorCollector,
     pub gpu: GpuCollector,
     pub battery: BatteryCollector,
+    pub k8s: K8sCollector,
+    pub k8s_widget: K8sWidget,
     pub dialog: Option<ConfirmDialog>,
     pub menu: Option<SettingsMenu>,
     pub theme: Theme,
@@ -69,9 +77,11 @@ impl App {
         let mut disk = DiskCollector::new(history_depth);
         let mut net = NetworkCollector::new(history_depth);
         let mut proc_collector = ProcessCollector::new();
+        let mut docker = DockerCollector::new();
         let mut sensor = SensorCollector::new(history_depth);
         let mut gpu = GpuCollector::new(history_depth);
         let mut battery = BatteryCollector::new();
+        let mut k8s = K8sCollector::new();
 
         // Initial collection so first render has data
         let _ = cpu.collect();
@@ -79,9 +89,11 @@ impl App {
         let _ = disk.collect();
         let _ = net.collect();
         let _ = proc_collector.collect();
+        let _ = docker.collect();
         let _ = sensor.collect();
         let _ = gpu.collect();
         let _ = battery.collect();
+        let _ = k8s.collect();
 
         let theme = theme::get_builtin_theme(&config.theme).unwrap_or_else(theme::default_theme);
 
@@ -99,9 +111,13 @@ impl App {
             net,
             proc_collector,
             proc_widget: ProcessWidget::new(),
+            docker,
+            container_widget: ContainerWidget::new(),
             sensor,
             gpu,
             battery,
+            k8s,
+            k8s_widget: K8sWidget::new(),
             dialog: None,
             menu: None,
             theme,
@@ -115,9 +131,11 @@ impl App {
         let _ = self.disk.collect();
         let _ = self.net.collect();
         let _ = self.proc_collector.collect();
+        let _ = self.docker.collect();
         let _ = self.sensor.collect();
         let _ = self.gpu.collect();
         let _ = self.battery.collect();
+        let _ = self.k8s.collect();
     }
 
     /// Open the help overlay.

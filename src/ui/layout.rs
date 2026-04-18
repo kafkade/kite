@@ -8,7 +8,9 @@ use ratatui::{
 
 use crate::app::{App, InputMode};
 use crate::ui::theme::Theme;
-use crate::ui::widgets::{cpu_box, disk_box, gpu_box, mem_box, net_box, proc_box, sensor_box};
+use crate::ui::widgets::{
+    container_box, cpu_box, disk_box, gpu_box, k8s_box, mem_box, net_box, proc_box, sensor_box,
+};
 
 /// Render the full application layout.
 pub fn render(frame: &mut Frame, app: &App) {
@@ -50,13 +52,14 @@ pub fn render(frame: &mut Frame, app: &App) {
 fn render_main_area(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
     let panels = &app.config().panels;
     let show_hw_row = panels.gpu || panels.sensors;
+    let show_container_row = panels.docker || panels.k8s;
 
     let mut constraints = Vec::new();
     let mut row_ids: Vec<&str> = Vec::new();
 
     // Row: CPU + Memory
     if panels.cpu || panels.memory {
-        constraints.push(if show_hw_row {
+        constraints.push(if show_hw_row || show_container_row {
             Constraint::Percentage(25)
         } else {
             Constraint::Percentage(30)
@@ -66,7 +69,7 @@ fn render_main_area(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
 
     // Row: Network + Disk
     if panels.network || panels.disk {
-        constraints.push(if show_hw_row {
+        constraints.push(if show_hw_row || show_container_row {
             Constraint::Percentage(20)
         } else {
             Constraint::Percentage(25)
@@ -78,6 +81,17 @@ fn render_main_area(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
     if show_hw_row {
         constraints.push(Constraint::Percentage(20));
         row_ids.push("hw");
+    }
+
+    // Row: Containers (Docker and/or Kubernetes)
+    if show_container_row {
+        if panels.docker && panels.k8s {
+            constraints.push(Constraint::Percentage(20));
+            row_ids.push("containers_both");
+        } else {
+            constraints.push(Constraint::Percentage(20));
+            row_ids.push("containers_single");
+        }
     }
 
     // Row: Processes (always takes remaining space)
@@ -131,6 +145,28 @@ fn render_main_area(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
                 }
                 if panels.sensors {
                     sensor_box::render(frame, cols[1], &app.sensor, theme);
+                }
+            }
+            "docker" | "containers_both" => {
+                let cols = Layout::default()
+                    .direction(Direction::Horizontal)
+                    .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
+                    .split(rows[i]);
+                container_box::render(frame, cols[0], &app.docker, &app.container_widget, theme);
+                k8s_box::render(frame, cols[1], &app.k8s, &app.k8s_widget, theme);
+            }
+            "containers_single" => {
+                if panels.docker {
+                    container_box::render(
+                        frame,
+                        rows[i],
+                        &app.docker,
+                        &app.container_widget,
+                        theme,
+                    );
+                }
+                if panels.k8s {
+                    k8s_box::render(frame, rows[i], &app.k8s, &app.k8s_widget, theme);
                 }
             }
             "proc" => {
