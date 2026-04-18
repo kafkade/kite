@@ -53,14 +53,8 @@ fn render_history(frame: &mut Frame, area: Rect, gpu: &GpuCollector) {
     // Usage label in top-right
     let label_width = current_pct.len() as u16;
     if area.width > label_width + 1 && area.height > 0 {
-        let label_area = Rect::new(
-            area.x + area.width - label_width,
-            area.y,
-            label_width,
-            1,
-        );
-        let label =
-            Paragraph::new(Span::styled(current_pct, Style::default().fg(Color::White)));
+        let label_area = Rect::new(area.x + area.width - label_width, area.y, label_width, 1);
+        let label = Paragraph::new(Span::styled(current_pct, Style::default().fg(Color::White)));
         frame.render_widget(label, label_area);
     }
 
@@ -171,9 +165,10 @@ fn render_left(frame: &mut Frame, area: Rect, gpu: &GpuCollector) {
             let pct = (used as f64 / total as f64 * 100.0) as u32;
             let label = "VRAM";
             let vram_text = format!(" {}/{}", format_bytes(used), format_bytes(total));
-            let bar_width =
-                area.width.saturating_sub(label.len() as u16 + vram_text.len() as u16 + 1)
-                    as usize;
+            let bar_width = area
+                .width
+                .saturating_sub(label.len() as u16 + vram_text.len() as u16 + 1)
+                as usize;
             let filled = ((used as f64 / total as f64) * bar_width as f64) as usize;
             let empty = bar_width.saturating_sub(filled);
             let color = color_for_usage(pct);
@@ -218,10 +213,7 @@ fn render_right(frame: &mut Frame, area: Rect, gpu: &GpuCollector) {
 
     // Fan speed
     let fan_span = match dev.fan_speed {
-        Some(f) => Span::styled(
-            format!("{}%", f),
-            Style::default().fg(Color::Cyan),
-        ),
+        Some(f) => Span::styled(format!("{}%", f), Style::default().fg(Color::Cyan)),
         None => na.clone(),
     };
     lines.push(Line::from(vec![
@@ -231,10 +223,7 @@ fn render_right(frame: &mut Frame, area: Rect, gpu: &GpuCollector) {
 
     // Graphics clock
     let gclk_span = match dev.clock_graphics {
-        Some(c) => Span::styled(
-            format!("{} MHz", c),
-            Style::default().fg(Color::Cyan),
-        ),
+        Some(c) => Span::styled(format!("{} MHz", c), Style::default().fg(Color::Cyan)),
         None => na.clone(),
     };
     lines.push(Line::from(vec![
@@ -244,10 +233,7 @@ fn render_right(frame: &mut Frame, area: Rect, gpu: &GpuCollector) {
 
     // Memory clock
     let mclk_span = match dev.clock_memory {
-        Some(c) => Span::styled(
-            format!("{} MHz", c),
-            Style::default().fg(Color::Cyan),
-        ),
+        Some(c) => Span::styled(format!("{} MHz", c), Style::default().fg(Color::Cyan)),
         None => na.clone(),
     };
     lines.push(Line::from(vec![
@@ -261,10 +247,9 @@ fn render_right(frame: &mut Frame, area: Rect, gpu: &GpuCollector) {
             format!("{:.0}W/{:.0}W", draw, limit),
             Style::default().fg(Color::Cyan),
         ),
-        (Some(draw), None) => Span::styled(
-            format!("{:.0}W", draw),
-            Style::default().fg(Color::Cyan),
-        ),
+        (Some(draw), None) => {
+            Span::styled(format!("{:.0}W", draw), Style::default().fg(Color::Cyan))
+        }
         _ => na.clone(),
     };
     lines.push(Line::from(vec![
