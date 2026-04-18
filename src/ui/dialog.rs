@@ -1,10 +1,12 @@
 use ratatui::{
     Frame,
     layout::{Constraint, Direction, Flex, Layout, Rect},
-    style::{Color, Modifier, Style},
+    style::{Modifier, Style},
     text::{Line, Span},
     widgets::{Block, Borders, Clear, Paragraph},
 };
+
+use crate::ui::theme::Theme;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum DialogChoice {
@@ -90,7 +92,7 @@ fn centered_rect(width: u16, height: u16, area: Rect) -> Rect {
     horizontal[1]
 }
 
-pub fn render(frame: &mut Frame, dialog: &ConfirmDialog) {
+pub fn render(frame: &mut Frame, dialog: &ConfirmDialog, theme: &Theme) {
     let area = frame.area();
 
     // Determine dialog dimensions based on content
@@ -108,7 +110,7 @@ pub fn render(frame: &mut Frame, dialog: &ConfirmDialog) {
     let block = Block::default()
         .title(format!(" {} ", dialog.title))
         .borders(Borders::ALL)
-        .border_style(Style::default().fg(Color::Red));
+        .border_style(Style::default().fg(theme.dialog_border));
 
     let inner = block.inner(dialog_area);
     frame.render_widget(block, dialog_area);
@@ -127,7 +129,7 @@ pub fn render(frame: &mut Frame, dialog: &ConfirmDialog) {
 
     // Render message centered
     let message = Paragraph::new(Line::from(dialog.message.as_str()))
-        .style(Style::default().fg(Color::White))
+        .style(Style::default().fg(theme.text_primary))
         .alignment(ratatui::layout::Alignment::Center);
     frame.render_widget(message, chunks[1]);
 
@@ -135,14 +137,14 @@ pub fn render(frame: &mut Frame, dialog: &ConfirmDialog) {
     let (cancel_style, confirm_style) = match dialog.selected {
         DialogChoice::Cancel => (
             Style::default()
-                .fg(Color::Yellow)
+                .fg(theme.warning)
                 .add_modifier(Modifier::BOLD),
-            Style::default().fg(Color::DarkGray),
+            Style::default().fg(theme.text_secondary),
         ),
         DialogChoice::Confirm => (
-            Style::default().fg(Color::DarkGray),
+            Style::default().fg(theme.text_secondary),
             Style::default()
-                .fg(Color::Yellow)
+                .fg(theme.warning)
                 .add_modifier(Modifier::BOLD),
         ),
     };

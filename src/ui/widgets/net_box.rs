@@ -1,20 +1,21 @@
 use ratatui::{
     Frame,
     layout::{Constraint, Direction, Layout, Rect},
-    style::{Color, Style},
+    style::Style,
     text::{Line, Span},
     widgets::{Block, Borders, Paragraph, Sparkline},
 };
 
 use crate::collector::network::NetworkCollector;
+use crate::ui::theme::Theme;
 use crate::util::units::format_bytes;
 
 /// Render the Network widget into the given area.
-pub fn render(frame: &mut Frame, area: Rect, net: &NetworkCollector) {
+pub fn render(frame: &mut Frame, area: Rect, net: &NetworkCollector, theme: &Theme) {
     let outer_block = Block::default()
         .title(" Network ")
         .borders(Borders::ALL)
-        .border_style(Style::default().fg(Color::Yellow));
+        .border_style(Style::default().fg(theme.net_border));
 
     let inner = outer_block.inner(area);
     frame.render_widget(outer_block, area);
@@ -28,15 +29,15 @@ pub fn render(frame: &mut Frame, area: Rect, net: &NetworkCollector) {
         .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
         .split(inner);
 
-    render_graph(frame, vert[0], net);
-    render_details(frame, vert[1], net);
+    render_graph(frame, vert[0], net, theme);
+    render_details(frame, vert[1], net, theme);
 }
 
 fn format_speed(bytes_sec: f64) -> String {
     format!("{}/s", format_bytes(bytes_sec as u64))
 }
 
-fn render_graph(frame: &mut Frame, area: Rect, net: &NetworkCollector) {
+fn render_graph(frame: &mut Frame, area: Rect, net: &NetworkCollector, theme: &Theme) {
     let label = format!(
         "↓ {}  ↑ {}",
         format_speed(net.total_rx_bytes_sec()),
@@ -46,7 +47,7 @@ fn render_graph(frame: &mut Frame, area: Rect, net: &NetworkCollector) {
     if area.height > 0 {
         let label_line = Paragraph::new(Line::from(Span::styled(
             label,
-            Style::default().fg(Color::White),
+            Style::default().fg(theme.text_primary),
         )));
         frame.render_widget(label_line, Rect::new(area.x, area.y, area.width, 1));
     }
@@ -61,12 +62,12 @@ fn render_graph(frame: &mut Frame, area: Rect, net: &NetworkCollector) {
 
     let sparkline = Sparkline::default()
         .data(&data)
-        .style(Style::default().fg(Color::Blue));
+        .style(Style::default().fg(theme.sparkline_net));
 
     frame.render_widget(sparkline, spark_area);
 }
 
-fn render_details(frame: &mut Frame, area: Rect, net: &NetworkCollector) {
+fn render_details(frame: &mut Frame, area: Rect, net: &NetworkCollector, theme: &Theme) {
     let mut lines: Vec<Line> = Vec::new();
     let max_lines = area.height as usize;
 
@@ -89,8 +90,8 @@ fn render_details(frame: &mut Frame, area: Rect, net: &NetworkCollector) {
         );
 
         lines.push(Line::from(vec![
-            Span::styled(name, Style::default().fg(Color::White)),
-            Span::styled(speeds, Style::default().fg(Color::DarkGray)),
+            Span::styled(name, Style::default().fg(theme.text_primary)),
+            Span::styled(speeds, Style::default().fg(theme.text_secondary)),
         ]));
     }
 
@@ -102,7 +103,7 @@ fn render_details(frame: &mut Frame, area: Rect, net: &NetworkCollector) {
     );
     lines.push(Line::from(Span::styled(
         totals,
-        Style::default().fg(Color::Green),
+        Style::default().fg(theme.good),
     )));
 
     let paragraph = Paragraph::new(lines);

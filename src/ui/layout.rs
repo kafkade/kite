@@ -1,17 +1,19 @@
 use ratatui::{
     Frame,
     layout::{Constraint, Direction, Layout, Rect},
-    style::{Color, Style},
+    style::Style,
     text::{Line, Span},
     widgets::Paragraph,
 };
 
 use crate::app::{App, InputMode};
+use crate::ui::theme::Theme;
 use crate::ui::widgets::{cpu_box, disk_box, gpu_box, mem_box, net_box, proc_box, sensor_box};
 
 /// Render the full application layout.
 pub fn render(frame: &mut Frame, app: &App) {
     let size = frame.area();
+    let theme = &app.theme;
 
     // Split into: main content area + status bar (1 line)
     let outer = Layout::default()
@@ -22,15 +24,15 @@ pub fn render(frame: &mut Frame, app: &App) {
         ])
         .split(size);
 
-    render_main_area(frame, outer[0], app);
-    render_status_bar(frame, outer[1], app);
+    render_main_area(frame, outer[0], app, theme);
+    render_status_bar(frame, outer[1], app, theme);
 
     // Render overlays on top of everything (highest priority last)
     match app.input_mode {
-        InputMode::Help => crate::ui::help::render(frame),
+        InputMode::Help => crate::ui::help::render(frame, theme),
         InputMode::Menu => {
             if let Some(ref menu) = app.menu {
-                crate::ui::menu::render(frame, menu);
+                crate::ui::menu::render(frame, menu, theme);
             }
         }
         _ => {}
@@ -38,14 +40,14 @@ pub fn render(frame: &mut Frame, app: &App) {
 
     // Dialog always renders on top of everything else
     if let Some(ref dialog) = app.dialog {
-        crate::ui::dialog::render(frame, dialog);
+        crate::ui::dialog::render(frame, dialog, theme);
     }
 }
 
 /// Render the main content area with adaptive layout.
 /// When GPU or Sensors panels are visible, a hardware row is added.
 /// Otherwise the original 3-row layout is used.
-fn render_main_area(frame: &mut Frame, area: Rect, app: &App) {
+fn render_main_area(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
     let panels = &app.config().panels;
     let show_hw_row = panels.gpu || panels.sensors;
 
@@ -101,10 +103,10 @@ fn render_main_area(frame: &mut Frame, area: Rect, app: &App) {
                     .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
                     .split(rows[i]);
                 if panels.cpu {
-                    cpu_box::render(frame, cols[0], &app.cpu);
+                    cpu_box::render(frame, cols[0], &app.cpu, theme);
                 }
                 if panels.memory {
-                    mem_box::render(frame, cols[1], &app.mem);
+                    mem_box::render(frame, cols[1], &app.mem, theme);
                 }
             }
             "net_disk" => {
@@ -113,10 +115,10 @@ fn render_main_area(frame: &mut Frame, area: Rect, app: &App) {
                     .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
                     .split(rows[i]);
                 if panels.network {
-                    net_box::render(frame, cols[0], &app.net);
+                    net_box::render(frame, cols[0], &app.net, theme);
                 }
                 if panels.disk {
-                    disk_box::render(frame, cols[1], &app.disk);
+                    disk_box::render(frame, cols[1], &app.disk, theme);
                 }
             }
             "hw" => {
@@ -125,14 +127,14 @@ fn render_main_area(frame: &mut Frame, area: Rect, app: &App) {
                     .constraints([Constraint::Percentage(50), Constraint::Percentage(50)])
                     .split(rows[i]);
                 if panels.gpu {
-                    gpu_box::render(frame, cols[0], &app.gpu);
+                    gpu_box::render(frame, cols[0], &app.gpu, theme);
                 }
                 if panels.sensors {
-                    sensor_box::render(frame, cols[1], &app.sensor);
+                    sensor_box::render(frame, cols[1], &app.sensor, theme);
                 }
             }
             "proc" => {
-                proc_box::render(frame, rows[i], &app.proc_collector, &app.proc_widget);
+                proc_box::render(frame, rows[i], &app.proc_collector, &app.proc_widget, theme);
             }
             _ => {}
         }
@@ -140,7 +142,7 @@ fn render_main_area(frame: &mut Frame, area: Rect, app: &App) {
 }
 
 /// Render the bottom status bar.
-fn render_status_bar(frame: &mut Frame, area: Rect, app: &App) {
+fn render_status_bar(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
     let now = chrono::Local::now().format("%H:%M:%S").to_string();
     let uptime_str = crate::util::units::format_duration(app.uptime_secs());
 
@@ -157,23 +159,39 @@ fn render_status_bar(frame: &mut Frame, area: Rect, app: &App) {
         app.hostname(),
         mode_indicator,
     );
+
+    // Battery info (empty string if no battery)
+    let battery_str = app.battery.format_compact();
+    let battery_section = if battery_str.is_empty() {
+        String::new()
+    } else {
+        format!(" │ {} ", battery_str)
+    };
+
     let right = format!(
-        " ? help │ {} │ up {} │ ↻ {}ms ",
+        " {} │ {} │ up {} │ ↻ {}ms ",
+        app.theme.name,
         now,
         uptime_str,
         app.update_interval_ms()
     );
 
-    let padding = area.width.saturating_sub((left.len() + right.len()) as u16);
+    let padding = area
+        .width
+        .saturating_sub((left.len() + battery_section.len() + right.len()) as u16);
 
     let bar = Line::from(vec![
-        Span::styled(&left, Style::default().fg(Color::Cyan)),
+        Span::styled(&left, Style::default().fg(theme.status_bar_accent)),
+        Span::styled(&battery_section, Style::default().fg(theme.good)),
         Span::raw(" ".repeat(padding as usize)),
-        Span::styled(&right, Style::default().fg(Color::DarkGray)),
+        Span::styled(&right, Style::default().fg(theme.text_secondary)),
     ]);
 
-    let bar_widget =
-        Paragraph::new(bar).style(Style::default().bg(Color::DarkGray).fg(Color::White));
+    let bar_widget = Paragraph::new(bar).style(
+        Style::default()
+            .bg(theme.status_bar_bg)
+            .fg(theme.status_bar_fg),
+    );
 
     frame.render_widget(bar_widget, area);
 }

@@ -7,13 +7,14 @@ use ratatui::{
 };
 
 use crate::collector::sensor::SensorCollector;
+use crate::ui::theme::Theme;
 
 /// Render the sensor widget into the given area.
-pub fn render(frame: &mut Frame, area: Rect, sensor: &SensorCollector) {
+pub fn render(frame: &mut Frame, area: Rect, sensor: &SensorCollector, theme: &Theme) {
     let outer_block = Block::default()
         .title(" Sensors ")
         .borders(Borders::ALL)
-        .border_style(Style::default().fg(Color::Magenta));
+        .border_style(Style::default().fg(theme.sensor_border));
 
     let inner = outer_block.inner(area);
     frame.render_widget(outer_block, area);
@@ -24,7 +25,7 @@ pub fn render(frame: &mut Frame, area: Rect, sensor: &SensorCollector) {
 
     if !sensor.has_sensors() {
         let msg = Paragraph::new("No sensors detected")
-            .style(Style::default().fg(Color::DarkGray))
+            .style(Style::default().fg(theme.text_secondary))
             .alignment(ratatui::layout::Alignment::Center);
         frame.render_widget(msg, inner);
         return;
@@ -36,12 +37,12 @@ pub fn render(frame: &mut Frame, area: Rect, sensor: &SensorCollector) {
         .constraints([Constraint::Percentage(40), Constraint::Percentage(60)])
         .split(inner);
 
-    render_sparkline(frame, vert[0], sensor);
-    render_sensor_list(frame, vert[1], sensor);
+    render_sparkline(frame, vert[0], sensor, theme);
+    render_sensor_list(frame, vert[1], sensor, theme);
 }
 
 /// Render the CPU temperature sparkline in the top section.
-fn render_sparkline(frame: &mut Frame, area: Rect, sensor: &SensorCollector) {
+fn render_sparkline(frame: &mut Frame, area: Rect, sensor: &SensorCollector, theme: &Theme) {
     if area.height == 0 || area.width == 0 {
         return;
     }
@@ -56,7 +57,10 @@ fn render_sparkline(frame: &mut Frame, area: Rect, sensor: &SensorCollector) {
     let label_width = label_text.len() as u16;
     if area.width > label_width + 1 && area.height > 0 {
         let label_area = Rect::new(area.x + area.width - label_width, area.y, label_width, 1);
-        let label = Paragraph::new(Span::styled(label_text, Style::default().fg(Color::White)));
+        let label = Paragraph::new(Span::styled(
+            label_text,
+            Style::default().fg(theme.text_primary),
+        ));
         frame.render_widget(label, label_area);
     }
 
@@ -91,13 +95,13 @@ fn render_sparkline(frame: &mut Frame, area: Rect, sensor: &SensorCollector) {
     let sparkline = Sparkline::default()
         .data(&data)
         .max(10_000)
-        .style(Style::default().fg(Color::Magenta));
+        .style(Style::default().fg(theme.sparkline_sensor));
 
     frame.render_widget(sparkline, spark_area);
 }
 
 /// Render the list of sensor readings in the bottom section.
-fn render_sensor_list(frame: &mut Frame, area: Rect, sensor: &SensorCollector) {
+fn render_sensor_list(frame: &mut Frame, area: Rect, sensor: &SensorCollector, theme: &Theme) {
     let max_lines = area.height as usize;
     if max_lines == 0 {
         return;
@@ -109,14 +113,17 @@ fn render_sensor_list(frame: &mut Frame, area: Rect, sensor: &SensorCollector) {
     let mut lines: Vec<Line> = Vec::with_capacity(max_lines);
 
     for reading in sorted.iter().take(max_lines) {
-        let color = temp_color(reading.current_temp, reading.critical_temp);
+        let color = temp_color(reading.current_temp, reading.critical_temp, theme);
         let temp_str = format!("{}: {:.1}°C", reading.label, reading.current_temp);
 
         let mut spans = vec![Span::styled(temp_str, Style::default().fg(color))];
 
         if let Some(crit) = reading.critical_temp {
             if reading.current_temp >= crit {
-                spans.push(Span::styled(" (CRIT!)", Style::default().fg(Color::Red)));
+                spans.push(Span::styled(
+                    " (CRIT!)",
+                    Style::default().fg(theme.critical),
+                ));
             }
         }
 
@@ -128,17 +135,17 @@ fn render_sensor_list(frame: &mut Frame, area: Rect, sensor: &SensorCollector) {
 }
 
 /// Choose a color based on temperature thresholds.
-fn temp_color(temp: f32, critical: Option<f32>) -> Color {
+fn temp_color(temp: f32, critical: Option<f32>, theme: &Theme) -> Color {
     if let Some(crit) = critical {
         if temp >= crit {
-            return Color::Red;
+            return theme.critical;
         }
     }
     if temp >= 80.0 {
-        Color::Red
+        theme.critical
     } else if temp >= 60.0 {
-        Color::Yellow
+        theme.warning
     } else {
-        Color::Green
+        theme.good
     }
 }

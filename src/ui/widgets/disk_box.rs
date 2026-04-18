@@ -7,14 +7,15 @@ use ratatui::{
 };
 
 use crate::collector::disk::DiskCollector;
+use crate::ui::theme::Theme;
 use crate::util::units::{format_bytes, format_percentage};
 
 /// Render the Disk widget into the given area.
-pub fn render(frame: &mut Frame, area: Rect, disk: &DiskCollector) {
+pub fn render(frame: &mut Frame, area: Rect, disk: &DiskCollector, theme: &Theme) {
     let outer_block = Block::default()
         .title(" Disk ")
         .borders(Borders::ALL)
-        .border_style(Style::default().fg(Color::Magenta));
+        .border_style(Style::default().fg(theme.disk_border));
 
     let inner = outer_block.inner(area);
     frame.render_widget(outer_block, area);
@@ -28,11 +29,11 @@ pub fn render(frame: &mut Frame, area: Rect, disk: &DiskCollector) {
         .constraints([Constraint::Percentage(35), Constraint::Percentage(65)])
         .split(inner);
 
-    render_io_sparkline(frame, vert[0], disk);
-    render_partition_list(frame, vert[1], disk);
+    render_io_sparkline(frame, vert[0], disk, theme);
+    render_partition_list(frame, vert[1], disk, theme);
 }
 
-fn render_io_sparkline(frame: &mut Frame, area: Rect, disk: &DiskCollector) {
+fn render_io_sparkline(frame: &mut Frame, area: Rect, disk: &DiskCollector, theme: &Theme) {
     if area.height < 1 {
         return;
     }
@@ -42,7 +43,7 @@ fn render_io_sparkline(frame: &mut Frame, area: Rect, disk: &DiskCollector) {
     let write_speed = format_bytes(disk.total_write_bytes_sec() as u64);
     let label = format!("R: {}/s  W: {}/s", read_speed, write_speed);
 
-    let label_line = Line::from(Span::styled(label, Style::default().fg(Color::White)));
+    let label_line = Line::from(Span::styled(label, Style::default().fg(theme.text_primary)));
     let label_area = Rect::new(area.x, area.y, area.width, 1);
     frame.render_widget(Paragraph::new(label_line), label_area);
 
@@ -57,23 +58,23 @@ fn render_io_sparkline(frame: &mut Frame, area: Rect, disk: &DiskCollector) {
             let sparkline = Sparkline::default()
                 .data(&data)
                 .max(max_val)
-                .style(Style::default().fg(Color::Magenta));
+                .style(Style::default().fg(theme.disk_border));
             frame.render_widget(sparkline, spark_area);
         }
     }
 }
 
-fn color_for_usage(pct: f64) -> Color {
+fn color_for_usage(pct: f64, theme: &Theme) -> Color {
     if pct >= 80.0 {
-        Color::Red
+        theme.critical
     } else if pct >= 50.0 {
-        Color::Yellow
+        theme.warning
     } else {
-        Color::Green
+        theme.good
     }
 }
 
-fn render_partition_list(frame: &mut Frame, area: Rect, disk: &DiskCollector) {
+fn render_partition_list(frame: &mut Frame, area: Rect, disk: &DiskCollector, theme: &Theme) {
     let max_lines = area.height as usize;
     let disks = disk.disks();
     let show = disks.len().min(max_lines);
@@ -97,12 +98,12 @@ fn render_partition_list(frame: &mut Frame, area: Rect, disk: &DiskCollector) {
         let filled = ((pct / 100.0) * bar_width as f64) as usize;
         let empty = bar_width.saturating_sub(filled);
 
-        let color = color_for_usage(pct);
+        let color = color_for_usage(pct, theme);
 
         lines.push(Line::from(vec![
-            Span::styled(prefix, Style::default().fg(Color::DarkGray)),
+            Span::styled(prefix, Style::default().fg(theme.text_secondary)),
             Span::styled("█".repeat(filled), Style::default().fg(color)),
-            Span::styled("░".repeat(empty), Style::default().fg(Color::DarkGray)),
+            Span::styled("░".repeat(empty), Style::default().fg(theme.text_secondary)),
             Span::styled(suffix, Style::default().fg(color)),
         ]));
     }
