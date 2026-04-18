@@ -22,6 +22,8 @@ pub struct Theme {
     pub gpu_border: Color,
     pub sensor_border: Color,
     pub battery_border: Color,
+    pub docker_border: Color,
+    pub k8s_border: Color,
 
     // Semantic colors (usage/temperature thresholds)
     pub good: Color,
@@ -71,6 +73,8 @@ pub fn default_theme() -> Theme {
         gpu_border: Color::Blue,
         sensor_border: Color::Magenta,
         battery_border: Color::Green,
+        docker_border: Color::Cyan,
+        k8s_border: Color::Cyan,
         good: Color::Green,
         warning: Color::Yellow,
         critical: Color::Red,
@@ -119,6 +123,8 @@ fn dracula_theme() -> Theme {
         gpu_border: PURPLE,
         sensor_border: ORANGE,
         battery_border: GREEN,
+        docker_border: CYAN,
+        k8s_border: CYAN,
         good: GREEN,
         warning: YELLOW,
         critical: RED,
@@ -167,6 +173,8 @@ fn gruvbox_dark_theme() -> Theme {
         gpu_border: PURPLE,
         sensor_border: AQUA,
         battery_border: GREEN,
+        docker_border: BLUE,
+        k8s_border: AQUA,
         good: GREEN,
         warning: YELLOW,
         critical: RED,
@@ -216,6 +224,8 @@ fn catppuccin_mocha_theme() -> Theme {
         gpu_border: TEAL,
         sensor_border: PEACH,
         battery_border: GREEN,
+        docker_border: TEAL,
+        k8s_border: BLUE,
         good: GREEN,
         warning: YELLOW,
         critical: RED,
@@ -265,6 +275,8 @@ fn catppuccin_latte_theme() -> Theme {
         gpu_border: TEAL,
         sensor_border: PEACH,
         battery_border: GREEN,
+        docker_border: TEAL,
+        k8s_border: BLUE,
         good: GREEN,
         warning: YELLOW,
         critical: RED,
@@ -314,6 +326,8 @@ fn nord_theme() -> Theme {
         gpu_border: FROST3,
         sensor_border: ORANGE,
         battery_border: GREEN,
+        docker_border: FROST0,
+        k8s_border: FROST2,
         good: GREEN,
         warning: YELLOW,
         critical: RED,
@@ -363,6 +377,8 @@ fn solarized_dark_theme() -> Theme {
         gpu_border: VIOLET,
         sensor_border: ORANGE,
         battery_border: GREEN,
+        docker_border: CYAN,
+        k8s_border: BLUE,
         good: GREEN,
         warning: YELLOW,
         critical: RED,
@@ -412,6 +428,8 @@ fn solarized_light_theme() -> Theme {
         gpu_border: VIOLET,
         sensor_border: ORANGE,
         battery_border: GREEN,
+        docker_border: CYAN,
+        k8s_border: BLUE,
         good: GREEN,
         warning: YELLOW,
         critical: RED,
@@ -461,6 +479,8 @@ fn tokyo_night_theme() -> Theme {
         gpu_border: MAGENTA,
         sensor_border: ORANGE,
         battery_border: GREEN,
+        docker_border: TEAL,
+        k8s_border: BLUE,
         good: GREEN,
         warning: YELLOW,
         critical: RED,
@@ -509,6 +529,8 @@ fn one_dark_theme() -> Theme {
         gpu_border: MAGENTA,
         sensor_border: ORANGE,
         battery_border: GREEN,
+        docker_border: CYAN,
+        k8s_border: BLUE,
         good: GREEN,
         warning: YELLOW,
         critical: RED,
@@ -556,6 +578,8 @@ fn monokai_theme() -> Theme {
         gpu_border: RED_PINK,
         sensor_border: YELLOW,
         battery_border: GREEN,
+        docker_border: CYAN,
+        k8s_border: PURPLE,
         good: GREEN,
         warning: ORANGE,
         critical: RED_PINK,
@@ -638,6 +662,8 @@ pub struct ThemeColors {
     pub gpu_border: String,
     pub sensor_border: String,
     pub battery_border: String,
+    pub docker_border: String,
+    pub k8s_border: String,
 
     pub good: String,
     pub warning: String,
@@ -740,6 +766,8 @@ fn theme_from_file(file: ThemeFile) -> anyhow::Result<Theme> {
         gpu_border: require_color(&c.gpu_border, "gpu_border")?,
         sensor_border: require_color(&c.sensor_border, "sensor_border")?,
         battery_border: require_color(&c.battery_border, "battery_border")?,
+        docker_border: require_color(&c.docker_border, "docker_border")?,
+        k8s_border: require_color(&c.k8s_border, "k8s_border")?,
         good: require_color(&c.good, "good")?,
         warning: require_color(&c.warning, "warning")?,
         critical: require_color(&c.critical, "critical")?,
@@ -895,6 +923,8 @@ disk_border = "#cba6f7"
 gpu_border = "#94e2d5"
 sensor_border = "#fab387"
 battery_border = "#a6e3a1"
+docker_border = "#94e2d5"
+k8s_border = "#89b4fa"
 good = "#a6e3a1"
 warning = "#f9e2af"
 critical = "#f38ba8"
@@ -942,6 +972,8 @@ disk_border = "blue"
 gpu_border = "blue"
 sensor_border = "magenta"
 battery_border = "green"
+docker_border = "cyan"
+k8s_border = "cyan"
 good = "green"
 warning = "yellow"
 critical = "red"
@@ -988,6 +1020,8 @@ disk_border = "blue"
 gpu_border = "blue"
 sensor_border = "magenta"
 battery_border = "green"
+docker_border = "cyan"
+k8s_border = "cyan"
 good = "green"
 warning = "yellow"
 critical = "red"

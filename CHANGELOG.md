@@ -24,6 +24,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - Theme cycling in the settings menu (`m`) and `--theme` CLI flag
 - Layout presets: Default, Minimal, Full, Server, Laptop, GPU Focus — each configures panel visibility in one step
 - Layout preset cycling in the settings menu and `--layout` CLI flag
+- Docker container monitoring panel showing name, image, status, CPU%, memory, network I/O, and block I/O for all containers
+- Docker container actions: start, stop, restart via the collector API
+- Auto-detection of Docker socket with graceful "Docker not available" fallback
+- `docker` feature flag for optional Docker dependency (enabled by default)
+- Kubernetes pod monitoring panel showing name, namespace, status, ready count, restarts, age, and node
+- Namespace filtering for Kubernetes pods (all namespaces or specific namespace)
+- Pod resource requests and limits display (CPU and memory)
+- `k8s` feature flag for optional Kubernetes dependency (opt-in, requires `--features k8s`)
+- "Show Docker" and "Show Kubernetes" toggles in the settings menu
+- Docker and Kubernetes panels share a layout row (side-by-side when both enabled)
 - Project website at `kite.kafkade.com` with brand kit, downloads, and feature overview
 - Light and dark theme toggle with cookie persistence
 - Interactive terminal mockup showing kite's dashboard output

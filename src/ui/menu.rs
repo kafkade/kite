@@ -145,6 +145,20 @@ impl SettingsMenu {
                 },
             },
             MenuItem {
+                label: "Show Docker".to_string(),
+                value: toggle_display(config.panels.docker),
+                kind: MenuItemKind::Toggle {
+                    enabled: config.panels.docker,
+                },
+            },
+            MenuItem {
+                label: "Show Kubernetes".to_string(),
+                value: toggle_display(config.panels.k8s),
+                kind: MenuItemKind::Toggle {
+                    enabled: config.panels.k8s,
+                },
+            },
+            MenuItem {
                 label: "Show GPU".to_string(),
                 value: toggle_display(config.panels.gpu),
                 kind: MenuItemKind::Toggle {
@@ -305,6 +319,16 @@ impl SettingsMenu {
                         config.panels.processes = *enabled;
                     }
                 }
+                "Show Docker" => {
+                    if let MenuItemKind::Toggle { enabled } = &item.kind {
+                        config.panels.docker = *enabled;
+                    }
+                }
+                "Show Kubernetes" => {
+                    if let MenuItemKind::Toggle { enabled } = &item.kind {
+                        config.panels.k8s = *enabled;
+                    }
+                }
                 "Show GPU" => {
                     if let MenuItemKind::Toggle { enabled } = &item.kind {
                         config.panels.gpu = *enabled;
@@ -440,7 +464,7 @@ mod tests {
     fn from_config_builds_correct_items() {
         let config = Config::default();
         let menu = SettingsMenu::from_config(&config);
-        assert_eq!(menu.items.len(), 11);
+        assert_eq!(menu.items.len(), 13);
         assert_eq!(menu.items[0].label, "Update Interval");
         assert_eq!(menu.items[1].label, "Graph Symbols");
         assert_eq!(menu.items[2].label, "Theme");
@@ -453,14 +477,14 @@ mod tests {
         let config = Config::default();
         let mut menu = SettingsMenu::from_config(&config);
         menu.move_up();
-        assert_eq!(menu.selected_index, 10);
+        assert_eq!(menu.selected_index, 12);
     }
 
     #[test]
     fn move_down_wraps() {
         let config = Config::default();
         let mut menu = SettingsMenu::from_config(&config);
-        menu.selected_index = 10;
+        menu.selected_index = 12;
         menu.move_down();
         assert_eq!(menu.selected_index, 0);
     }

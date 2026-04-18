@@ -37,7 +37,11 @@ pub struct PanelVisibility {
     #[serde(default = "bool_true")]
     pub processes: bool,
     #[serde(default = "bool_true")]
+    pub docker: bool,
+    #[serde(default = "bool_true")]
     pub gpu: bool,
+    #[serde(default)]
+    pub k8s: bool,
     #[serde(default = "bool_true")]
     pub sensors: bool,
 }
@@ -50,7 +54,9 @@ impl Default for PanelVisibility {
             disk: true,
             network: true,
             processes: true,
+            docker: true,
             gpu: true,
+            k8s: false,
             sensors: true,
         }
     }
@@ -109,13 +115,26 @@ impl LayoutPreset {
     /// Apply this preset to PanelVisibility.
     pub fn apply_to_panels(&self, panels: &mut PanelVisibility) {
         match self {
-            Self::Default | Self::Full => {
+            Self::Default => {
                 panels.cpu = true;
                 panels.memory = true;
                 panels.disk = true;
                 panels.network = true;
                 panels.processes = true;
+                panels.docker = true;
                 panels.gpu = true;
+                panels.k8s = false;
+                panels.sensors = true;
+            }
+            Self::Full => {
+                panels.cpu = true;
+                panels.memory = true;
+                panels.disk = true;
+                panels.network = true;
+                panels.processes = true;
+                panels.docker = true;
+                panels.gpu = true;
+                panels.k8s = true;
                 panels.sensors = true;
             }
             Self::Minimal => {
@@ -124,7 +143,9 @@ impl LayoutPreset {
                 panels.disk = false;
                 panels.network = false;
                 panels.processes = true;
+                panels.docker = false;
                 panels.gpu = false;
+                panels.k8s = false;
                 panels.sensors = false;
             }
             Self::Server => {
@@ -133,7 +154,9 @@ impl LayoutPreset {
                 panels.disk = true;
                 panels.network = true;
                 panels.processes = true;
+                panels.docker = true;
                 panels.gpu = false;
+                panels.k8s = true;
                 panels.sensors = false;
             }
             Self::Laptop => {
@@ -142,7 +165,9 @@ impl LayoutPreset {
                 panels.disk = true;
                 panels.network = true;
                 panels.processes = true;
+                panels.docker = false;
                 panels.gpu = false;
+                panels.k8s = false;
                 panels.sensors = true;
             }
             Self::GpuFocus => {
@@ -151,7 +176,9 @@ impl LayoutPreset {
                 panels.disk = false;
                 panels.network = false;
                 panels.processes = true;
+                panels.docker = false;
                 panels.gpu = true;
+                panels.k8s = false;
                 panels.sensors = true;
             }
         }

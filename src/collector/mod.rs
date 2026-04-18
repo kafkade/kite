@@ -1,7 +1,9 @@
 pub mod battery;
 pub mod cpu;
 pub mod disk;
+pub mod docker;
 pub mod gpu;
+pub mod k8s;
 pub mod memory;
 pub mod network;
 pub mod process;
