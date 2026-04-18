@@ -1,3 +1,4 @@
+mod alert;
 mod app;
 mod collector;
 mod config;
@@ -90,6 +91,10 @@ async fn main() -> Result<()> {
             AppEvent::Resize(w, h) => app.on_resize(w, h),
             AppEvent::Tick => {
                 app.collect_all();
+                if app.alerts.bell_pending() {
+                    print!("\x07");
+                    app.alerts.clear_bell();
+                }
             }
             AppEvent::RenderTick | AppEvent::Mouse(_) => {}
         }

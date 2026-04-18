@@ -34,6 +34,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `k8s` feature flag for optional Kubernetes dependency (opt-in, requires `--features k8s`)
 - "Show Docker" and "Show Kubernetes" toggles in the settings menu
 - Docker and Kubernetes panels share a layout row (side-by-side when both enabled)
+- Configurable alert rules in TOML with metric, condition, threshold, duration, and severity (info/warning/critical)
+- Default alert rules for high CPU (>90%) and high memory (>90%) usage
+- Alert indicator in the status bar showing active alert count and highest severity, color-coded
+- Terminal bell on critical alerts
+- Alert history tracking (last 100 alerts)
+- Per-process disk I/O statistics (read/write bytes) shown in the process table
+- Top-N process mode — cycle through All, Top 10, Top 25, Top 50 with `n` key
+- Process bookmarks — pin processes to the top of the list with `b` key, shown with `*` indicator
 - Project website at `kite.kafkade.com` with brand kit, downloads, and feature overview
 - Light and dark theme toggle with cookie persistence
 - Interactive terminal mockup showing kite's dashboard output

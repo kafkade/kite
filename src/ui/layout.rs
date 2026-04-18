@@ -204,6 +204,20 @@ fn render_status_bar(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
         format!(" │ {} ", battery_str)
     };
 
+    // Alert indicator
+    let alert_str = app.alerts.format_indicator();
+    let alert_section = if alert_str.is_empty() {
+        String::new()
+    } else {
+        format!(" {} ", alert_str)
+    };
+
+    let alert_color = match app.alerts.highest_severity() {
+        Some(crate::alert::Severity::Critical) => theme.critical,
+        Some(crate::alert::Severity::Warning) => theme.warning,
+        _ => theme.accent,
+    };
+
     let right = format!(
         " {} │ {} │ up {} │ ↻ {}ms ",
         app.theme.name,
@@ -212,13 +226,14 @@ fn render_status_bar(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
         app.update_interval_ms()
     );
 
-    let padding = area
-        .width
-        .saturating_sub((left.len() + battery_section.len() + right.len()) as u16);
+    let padding = area.width.saturating_sub(
+        (left.len() + battery_section.len() + alert_section.len() + right.len()) as u16,
+    );
 
     let bar = Line::from(vec![
         Span::styled(&left, Style::default().fg(theme.status_bar_accent)),
         Span::styled(&battery_section, Style::default().fg(theme.good)),
+        Span::styled(&alert_section, Style::default().fg(alert_color)),
         Span::raw(" ".repeat(padding as usize)),
         Span::styled(&right, Style::default().fg(theme.text_secondary)),
     ]);

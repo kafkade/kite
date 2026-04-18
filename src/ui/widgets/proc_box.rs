@@ -103,6 +103,8 @@ const COL_MEM_PCT: u16 = 7;
 const COL_MEM: u16 = 9;
 const COL_STATE: u16 = 8;
 const COL_THREADS: u16 = 4;
+const COL_IO_R: u16 = 8;
+const COL_IO_W: u16 = 8;
 
 fn sort_indicator(col: SortColumn, active: SortColumn, order: SortOrder) -> &'static str {
     if col == active {
@@ -154,7 +156,16 @@ fn build_header_line(
     theme: &Theme,
 ) -> Line<'static> {
     let cmd_width = width.saturating_sub(
-        COL_PID + COL_NAME + COL_USER + COL_CPU + COL_MEM_PCT + COL_MEM + COL_STATE + COL_THREADS,
+        COL_PID
+            + COL_NAME
+            + COL_USER
+            + COL_CPU
+            + COL_MEM_PCT
+            + COL_MEM
+            + COL_STATE
+            + COL_THREADS
+            + COL_IO_R
+            + COL_IO_W,
     );
     let hdr_style = Style::default()
         .fg(theme.text_primary)
@@ -248,6 +259,16 @@ fn build_header_line(
             true,
         ),
         (
+            format!("{:>w$}", "Read", w = COL_IO_R as usize),
+            COL_IO_R,
+            true,
+        ),
+        (
+            format!("{:>w$}", "Write", w = COL_IO_W as usize),
+            COL_IO_W,
+            true,
+        ),
+        (
             format!("{:<w$}", "Command", w = cmd_width as usize),
             cmd_width,
             false,
@@ -272,20 +293,33 @@ fn build_row_spans(
     mem_bytes: u64,
     status: &str,
     threads: Option<u32>,
+    disk_read_bytes: u64,
+    disk_write_bytes: u64,
     command: &str,
     width: u16,
     selected: bool,
     tree_prefix: &str,
+    pinned: bool,
     theme: &Theme,
 ) -> Line<'static> {
     let cmd_width = width.saturating_sub(
-        COL_PID + COL_NAME + COL_USER + COL_CPU + COL_MEM_PCT + COL_MEM + COL_STATE + COL_THREADS,
+        COL_PID
+            + COL_NAME
+            + COL_USER
+            + COL_CPU
+            + COL_MEM_PCT
+            + COL_MEM
+            + COL_STATE
+            + COL_THREADS
+            + COL_IO_R
+            + COL_IO_W,
     ) as usize;
 
+    let pin = if pinned { "*" } else { " " };
     let display_name = if tree_prefix.is_empty() {
-        truncate(name, COL_NAME as usize)
+        truncate(&format!("{}{}", pin, name), COL_NAME as usize)
     } else {
-        let prefixed = format!("{}{}", tree_prefix, name);
+        let prefixed = format!("{}{}{}", pin, tree_prefix, name);
         truncate(&prefixed, COL_NAME as usize)
     };
 
@@ -302,6 +336,8 @@ fn build_row_spans(
 
     let thr_str = threads.map_or("-".to_string(), |t| t.to_string());
     let mem_str = format_bytes(mem_bytes);
+    let io_r_str = format_bytes(disk_read_bytes);
+    let io_w_str = format_bytes(disk_write_bytes);
 
     let spans = vec![
         Span::styled(format!("{:>w$}", pid, w = COL_PID as usize), base_style),
@@ -336,6 +372,14 @@ fn build_row_spans(
             base_style,
         ),
         Span::styled(
+            format!("{:>w$}", io_r_str, w = COL_IO_R as usize),
+            base_style,
+        ),
+        Span::styled(
+            format!("{:>w$}", io_w_str, w = COL_IO_W as usize),
+            base_style,
+        ),
+        Span::styled(
             format!("{:<w$}", truncate(command, cmd_width), w = cmd_width),
             base_style,
         ),
@@ -352,9 +396,12 @@ pub fn render(
     theme: &Theme,
 ) {
     let title = if proc_collector.is_paused() {
-        " Processes [PAUSED] "
+        " Processes [PAUSED] ".to_string()
     } else {
-        " Processes "
+        match proc_collector.top_n() {
+            Some(n) => format!(" Processes (Top {}) ", n),
+            None => " Processes ".to_string(),
+        }
     };
 
     let outer_block = Block::default()
@@ -434,6 +481,7 @@ pub fn render(
             let prefix = "  ".repeat(node.depth);
             let selected = i == widget.selected_index;
             let p = &node.process;
+            let pinned = proc_collector.is_bookmarked(p.pid);
             lines.push(build_row_spans(
                 p.pid,
                 &p.name,
@@ -443,10 +491,13 @@ pub fn render(
                 p.mem_bytes,
                 &p.status,
                 p.threads,
+                p.disk_read_bytes,
+                p.disk_write_bytes,
                 &p.command,
                 inner.width,
                 selected,
                 &prefix,
+                pinned,
                 theme,
             ));
         }
@@ -455,6 +506,7 @@ pub fn render(
         let start = widget.scroll_offset.min(end);
         for (i, p) in processes.iter().enumerate().skip(start).take(end - start) {
             let selected = i == widget.selected_index;
+            let pinned = proc_collector.is_bookmarked(p.pid);
             lines.push(build_row_spans(
                 p.pid,
                 &p.name,
@@ -464,10 +516,13 @@ pub fn render(
                 p.mem_bytes,
                 &p.status,
                 p.threads,
+                p.disk_read_bytes,
+                p.disk_write_bytes,
                 &p.command,
                 inner.width,
                 selected,
                 "",
+                pinned,
                 theme,
             ));
         }
@@ -482,7 +537,7 @@ pub fn render(
         SortOrder::Descending => "▼",
     };
     let status_text = format!(
-        "Total: {}  Showing: {}  │  Sort: {} {}  │  Space: pause  T: tree",
+        "Total: {}  Showing: {}  │  Sort: {} {}  │  Space: pause  T: tree  N: top-n  B: bookmark",
         proc_collector.all_process_count(),
         total_items,
         sort_label,

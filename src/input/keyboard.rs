@@ -132,6 +132,12 @@ fn handle_normal(app: &mut App, key: KeyEvent) {
         Some(Action::Refresh) => app.collect_all(),
         None => match key.code {
             KeyCode::Char('t') | KeyCode::Char('T') => app.proc_widget.toggle_tree(),
+            KeyCode::Char('n') | KeyCode::Char('N') => app.proc_collector.cycle_top_n(),
+            KeyCode::Char('b') | KeyCode::Char('B') => {
+                if let Some(pid) = app.proc_widget.selected_pid(app.proc_collector.processes()) {
+                    app.proc_collector.toggle_bookmark(pid);
+                }
+            }
             KeyCode::Char('K') => {
                 if let Some(pid) = app.proc_widget.selected_pid(app.proc_collector.processes()) {
                     let name = app
