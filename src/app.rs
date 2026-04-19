@@ -6,16 +6,19 @@ use crate::collector::Collector;
 use crate::collector::battery::BatteryCollector;
 use crate::collector::cpu::CpuCollector;
 use crate::collector::disk::DiskCollector;
+use crate::collector::disk::DiskInfo;
 use crate::collector::docker::DockerCollector;
 use crate::collector::gpu::GpuCollector;
 use crate::collector::k8s::K8sCollector;
 use crate::collector::memory::MemoryCollector;
+use crate::collector::network::InterfaceInfo;
 use crate::collector::network::NetworkCollector;
 use crate::collector::process::ProcessCollector;
 use crate::collector::remote::RemoteCollector;
 use crate::collector::sensor::SensorCollector;
 use crate::config::keybindings::KeyBindings;
 use crate::config::settings::Config;
+use crate::export::replay::ReplayState;
 use crate::ui::dialog::ConfirmDialog;
 use crate::ui::menu::SettingsMenu;
 use crate::ui::theme::{self, Theme};
@@ -68,6 +71,7 @@ pub struct App {
     pub menu: Option<SettingsMenu>,
     pub theme: Theme,
     pub alerts: AlertEngine,
+    pub replay: Option<ReplayState>,
 }
 
 impl App {
@@ -140,6 +144,7 @@ impl App {
             menu: None,
             theme,
             alerts,
+            replay: None,
         }
     }
 
@@ -276,5 +281,130 @@ impl App {
 
     pub fn is_running(&self) -> bool {
         self.state == AppState::Running
+    }
+
+    // -- Replay mode -------------------------------------------------------
+
+    /// Whether the app is in replay mode.
+    pub fn is_replay_mode(&self) -> bool {
+        self.replay.is_some()
+    }
+
+    /// Advance replay if auto-play is enabled.
+    pub fn replay_auto_advance(&mut self) {
+        let should_apply = match self.replay {
+            Some(ref mut r) if r.auto_play => r.next(),
+            _ => false,
+        };
+        if should_apply {
+            self.apply_current_replay();
+        }
+    }
+
+    /// Move to the next replay record.
+    pub fn replay_next(&mut self) {
+        let advanced = match self.replay {
+            Some(ref mut r) => r.next(),
+            None => false,
+        };
+        if advanced {
+            self.apply_current_replay();
+        }
+    }
+
+    /// Move to the previous replay record.
+    pub fn replay_prev(&mut self) {
+        let moved = match self.replay {
+            Some(ref mut r) => r.prev(),
+            None => false,
+        };
+        if moved {
+            self.apply_current_replay();
+        }
+    }
+
+    /// Seek to the start of the replay.
+    pub fn replay_seek_start(&mut self) {
+        if let Some(ref mut r) = self.replay {
+            r.seek_start();
+        }
+        self.apply_current_replay();
+    }
+
+    /// Seek to the end of the replay.
+    pub fn replay_seek_end(&mut self) {
+        if let Some(ref mut r) = self.replay {
+            r.seek_end();
+        }
+        self.apply_current_replay();
+    }
+
+    /// Toggle auto-play in replay mode.
+    pub fn replay_toggle_auto_play(&mut self) {
+        if let Some(ref mut r) = self.replay {
+            r.toggle_auto_play();
+        }
+    }
+
+    /// Status line for the status bar in replay mode.
+    pub fn replay_status_line(&self) -> Option<String> {
+        self.replay.as_ref().map(|r| {
+            let indicator = if r.auto_play { ">>" } else { "||" };
+            format!(
+                "[REPLAY {}] {}/{} │ {}",
+                indicator,
+                r.position() + 1,
+                r.len(),
+                r.timestamp()
+            )
+        })
+    }
+
+    /// Apply the current replay record's data to the collectors.
+    pub fn apply_current_replay(&mut self) {
+        let record = match self.replay {
+            Some(ref r) => r.current().clone(),
+            None => return,
+        };
+
+        if let Some(ref cpu) = record.cpu {
+            self.cpu.set_usage(cpu.total, cpu.cores.clone());
+        }
+        if let Some(ref mem) = record.memory {
+            self.mem
+                .set_memory(mem.used, mem.total, mem.swap_used, mem.swap_total);
+        }
+        if let Some(ref disk) = record.disk {
+            let filesystems = disk
+                .filesystems
+                .iter()
+                .map(|f| DiskInfo {
+                    name: String::new(),
+                    mount_point: f.mount.clone(),
+                    fs_type: String::new(),
+                    total_bytes: f.total_bytes,
+                    used_bytes: f.used_bytes,
+                    free_bytes: f.free_bytes,
+                    usage_percent: f.usage_percent,
+                })
+                .collect();
+            self.disk
+                .set_disk_data(disk.read_bytes_sec, disk.write_bytes_sec, filesystems);
+        }
+        if let Some(ref network) = record.network {
+            let total_rx: f64 = network.iter().map(|n| n.rx_bytes_sec).sum();
+            let total_tx: f64 = network.iter().map(|n| n.tx_bytes_sec).sum();
+            let interfaces = network
+                .iter()
+                .map(|n| InterfaceInfo {
+                    name: n.name.clone(),
+                    rx_bytes_sec: n.rx_bytes_sec,
+                    tx_bytes_sec: n.tx_bytes_sec,
+                    total_rx: n.total_rx,
+                    total_tx: n.total_tx,
+                })
+                .collect();
+            self.net.set_network_data(interfaces, total_rx, total_tx);
+        }
     }
 }

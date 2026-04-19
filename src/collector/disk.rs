@@ -92,6 +92,20 @@ impl DiskCollector {
     pub fn write_history(&self) -> &RingBuffer<f64> {
         &self.write_history
     }
+
+    /// Set disk data directly (used by replay mode).
+    pub fn set_disk_data(
+        &mut self,
+        read_bytes_sec: f64,
+        write_bytes_sec: f64,
+        filesystems: Vec<DiskInfo>,
+    ) {
+        self.total_read_bytes_sec = read_bytes_sec;
+        self.total_write_bytes_sec = write_bytes_sec;
+        self.disk_info = filesystems;
+        self.read_history.push(read_bytes_sec);
+        self.write_history.push(write_bytes_sec);
+    }
 }
 
 impl Collector for DiskCollector {

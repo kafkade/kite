@@ -17,6 +17,7 @@ battery = ["dep:starship-battery"]
 docker = ["dep:bollard"]
 k8s = ["dep:kube", "dep:k8s-openapi"]
 ssh = ["dep:russh", "dep:ssh-key", "dep:async-trait"]
+prometheus = ["dep:prometheus-client", "tokio/net", "tokio/io-util"]
 
 [dependencies]
 anyhow = "1"
@@ -40,3 +41,6 @@ k8s-openapi = { version = "0.24", features = ["v1_32"], optional = true }
 russh = { version = "0.48", optional = true }
 ssh-key = { version = "0.6", optional = true }
 async-trait = { version = "0.1", optional = true }
+prometheus-client = { version = "0.22", optional = true }
+serde_json = "1"
+flate2 = "1"

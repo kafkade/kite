@@ -195,11 +195,15 @@ fn render_status_bar(frame: &mut Frame, area: Rect, app: &App, theme: &Theme) {
     let now = chrono::Local::now().format("%H:%M:%S").to_string();
     let uptime_str = crate::util::units::format_duration(app.uptime_secs());
 
-    let mode_indicator = match app.input_mode {
-        InputMode::Normal => "",
-        InputMode::Filtering => " [FILTER]",
-        InputMode::Help => " [HELP]",
-        InputMode::Menu => " [MENU]",
+    let mode_indicator = if let Some(ref status) = app.replay_status_line() {
+        format!(" {status}")
+    } else {
+        match app.input_mode {
+            InputMode::Normal => String::new(),
+            InputMode::Filtering => " [FILTER]".to_string(),
+            InputMode::Help => " [HELP]".to_string(),
+            InputMode::Menu => " [MENU]".to_string(),
+        }
     };
 
     let left = format!(

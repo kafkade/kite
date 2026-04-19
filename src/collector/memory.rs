@@ -83,6 +83,19 @@ impl MemoryCollector {
     pub fn swap_history(&self) -> &RingBuffer<f64> {
         &self.swap_history
     }
+
+    /// Set memory values directly (used by replay mode).
+    pub fn set_memory(&mut self, used: u64, total: u64, swap_used: u64, swap_total: u64) {
+        self.total_ram = total;
+        self.used_ram = used;
+        self.free_ram = total.saturating_sub(used);
+        self.available_ram = self.free_ram;
+        self.swap_total = swap_total;
+        self.swap_used = swap_used;
+        self.swap_free = swap_total.saturating_sub(swap_used);
+        self.ram_history.push(self.ram_usage_percent());
+        self.swap_history.push(self.swap_usage_percent());
+    }
 }
 
 impl Collector for MemoryCollector {

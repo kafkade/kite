@@ -80,6 +80,13 @@ impl CpuCollector {
     pub fn usage_history(&self) -> &RingBuffer<f64> {
         &self.usage_history
     }
+
+    /// Set CPU usage directly (used by replay mode).
+    pub fn set_usage(&mut self, total: f64, per_core: Vec<f64>) {
+        self.total_usage = total;
+        self.per_core_usage = per_core;
+        self.usage_history.push(total);
+    }
 }
 
 impl Collector for CpuCollector {

@@ -105,6 +105,11 @@ fn handle_filter(app: &mut App, key: KeyEvent) {
 }
 
 fn handle_normal(app: &mut App, key: KeyEvent) {
+    if app.is_replay_mode() {
+        handle_replay(app, key);
+        return;
+    }
+
     let action = app.keybindings().resolve(key.code, key.modifiers);
 
     match action {
@@ -164,5 +169,22 @@ fn handle_normal(app: &mut App, key: KeyEvent) {
             _ => {}
         },
         Some(_) => {}
+    }
+}
+
+fn handle_replay(app: &mut App, key: KeyEvent) {
+    let action = app.keybindings().resolve(key.code, key.modifiers);
+
+    match action {
+        Some(Action::Quit) => app.set_state(AppState::Quitting),
+        Some(Action::Help) => app.toggle_help(),
+        _ => match key.code {
+            KeyCode::Right | KeyCode::Char('l') => app.replay_next(),
+            KeyCode::Left | KeyCode::Char('h') => app.replay_prev(),
+            KeyCode::Home => app.replay_seek_start(),
+            KeyCode::End => app.replay_seek_end(),
+            KeyCode::Char(' ') => app.replay_toggle_auto_play(),
+            _ => {}
+        },
     }
 }

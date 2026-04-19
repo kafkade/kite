@@ -220,6 +220,115 @@ fn default_ssh_port() -> u16 {
     22
 }
 
+/// Log output format.
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
+#[serde(rename_all = "lowercase")]
+pub enum LogFormat {
+    #[default]
+    Json,
+    Csv,
+}
+
+/// Log rotation strategy.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LogRotation {
+    /// Rotation mode: "size" or "time"
+    #[serde(default = "default_rotation_mode")]
+    pub mode: String,
+    /// Max file size in bytes before rotation (default: 50 MiB)
+    #[serde(default = "default_max_size")]
+    pub max_size_bytes: u64,
+    /// Max age in seconds before rotation (default: 86400 = 1 day)
+    #[serde(default = "default_max_age")]
+    pub max_age_secs: u64,
+    /// Max number of rotated files to keep (default: 10)
+    #[serde(default = "default_max_files")]
+    pub max_files: usize,
+}
+
+impl Default for LogRotation {
+    fn default() -> Self {
+        Self {
+            mode: default_rotation_mode(),
+            max_size_bytes: default_max_size(),
+            max_age_secs: default_max_age(),
+            max_files: default_max_files(),
+        }
+    }
+}
+
+fn default_rotation_mode() -> String {
+    "size".to_string()
+}
+fn default_max_size() -> u64 {
+    50 * 1024 * 1024 // 50 MiB
+}
+fn default_max_age() -> u64 {
+    86400 // 1 day
+}
+fn default_max_files() -> usize {
+    10
+}
+
+/// Configuration for file-based metrics logging.
+#[derive(Debug, Clone, Default, Serialize, Deserialize)]
+pub struct LoggingConfig {
+    /// Whether logging is enabled (default: false)
+    #[serde(default)]
+    pub enabled: bool,
+    /// Output format: "json" or "csv"
+    #[serde(default)]
+    pub format: LogFormat,
+    /// Log directory path (default: platform data dir / kite / logs)
+    #[serde(default)]
+    pub path: Option<String>,
+    /// Log rotation settings
+    #[serde(default)]
+    pub rotation: LogRotation,
+    /// Compress rotated log files with gzip
+    #[serde(default)]
+    pub compress: bool,
+    /// Which metrics to log (empty = all). Values: "cpu", "memory", "disk", "network"
+    #[serde(default)]
+    pub metrics: Vec<String>,
+}
+
+/// Configuration for the Prometheus metrics exporter.
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct PrometheusConfig {
+    /// Whether the Prometheus exporter is enabled (default: false)
+    #[serde(default)]
+    pub enabled: bool,
+    /// Port for the HTTP server (default: 9898)
+    #[serde(default = "default_prometheus_port")]
+    pub port: u16,
+    /// Bind address (default: "127.0.0.1")
+    #[serde(default = "default_bind_address")]
+    pub bind_address: String,
+    /// Optional bearer token for authentication
+    #[serde(default)]
+    pub auth_token: Option<String>,
+}
+
+impl Default for PrometheusConfig {
+    fn default() -> Self {
+        Self {
+            enabled: false,
+            port: default_prometheus_port(),
+            bind_address: default_bind_address(),
+            auth_token: None,
+        }
+    }
+}
+
+fn default_prometheus_port() -> u16 {
+    9898
+}
+
+fn default_bind_address() -> String {
+    "127.0.0.1".to_string()
+}
+
 /// Top-level application configuration.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Config {
@@ -252,6 +361,12 @@ pub struct Config {
 
     #[serde(default)]
     pub remotes: Vec<RemoteConfig>,
+
+    #[serde(default)]
+    pub logging: LoggingConfig,
+
+    #[serde(default)]
+    pub prometheus: PrometheusConfig,
 }
 
 impl Default for Config {
@@ -267,6 +382,8 @@ impl Default for Config {
             layout: LayoutPreset::default(),
             alerts: Vec::new(),
             remotes: Vec::new(),
+            logging: LoggingConfig::default(),
+            prometheus: PrometheusConfig::default(),
         }
     }
 }
