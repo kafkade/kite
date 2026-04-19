@@ -504,8 +504,10 @@ mod tests {
 
     #[test]
     fn decrement_numeric_clamps_at_min() {
-        let mut config = Config::default();
-        config.update_interval_ms = 100;
+        let config = Config {
+            update_interval_ms: 100,
+            ..Config::default()
+        };
         let mut menu = SettingsMenu::from_config(&config);
         menu.decrement();
         if let MenuItemKind::Numeric { current, .. } = &menu.items[0].kind {

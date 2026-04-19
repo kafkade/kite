@@ -162,7 +162,7 @@ mod tests {
 
         for (i, &usage) in collector.per_core_usage().iter().enumerate() {
             assert!(
-                usage >= 0.0 && usage <= 100.0,
+                (0.0..=100.0).contains(&usage),
                 "core {i} usage out of range: {usage}"
             );
         }

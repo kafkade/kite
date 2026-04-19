@@ -158,7 +158,7 @@ mod tests {
 
         if collector.cpu_sensor_label.is_some() && collector.has_sensors() {
             assert!(
-                collector.cpu_temp_history().len() > 0,
+                !collector.cpu_temp_history().is_empty(),
                 "CPU temp history should grow when a CPU sensor is detected"
             );
         }
