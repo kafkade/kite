@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Changed
+
+- Rename create from `kite` to `kite-monitor`.
+- Update docs to reflect crate name change.
+
 ## [1.1.0] - 2026-04-18
 
 ### Added
