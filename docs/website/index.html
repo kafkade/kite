@@ -217,7 +217,7 @@
         </div>
         <div class="pkg-item">
           <span class="pkg-name">Cargo</span>
-          <span class="badge-soon">Soon</span>
+          <code>cargo install kite-monitor</code>
         </div>
         <div class="pkg-item">
           <span class="pkg-name">Scoop</span>
@@ -253,24 +253,22 @@
       <p class="label">Get started</p>
       <h2>Up and running in seconds.</h2>
       <p class="section-intro">
-        Clone, build with Cargo, and launch. Requires Rust 1.85+.
+        Install from crates.io or build from source. Requires Rust 1.85+.
       </p>
 
       <div class="quickstart-steps">
         <div class="step">
           <div class="step-num">Step 01</div>
-          <h3>Clone &amp; build</h3>
-          <div class="code-block"><span class="prompt">$</span> git clone https://github.com/kafkade/kite.git
-<span class="prompt">$</span> cd kite
-<span class="prompt">$</span> cargo build --release</div>
+          <h3>Install</h3>
+          <div class="code-block"><span class="prompt">$</span> cargo install kite-monitor</div>
         </div>
         <div class="step">
           <div class="step-num">Step 02</div>
           <h3>Launch</h3>
-          <div class="code-block"><span class="prompt">$</span> ./target/release/kite
+          <div class="code-block"><span class="prompt">$</span> kite
 
 <span class="comment"># Custom refresh interval</span>
-<span class="prompt">$</span> ./target/release/kite --interval 500</div>
+<span class="prompt">$</span> kite --interval 500</div>
         </div>
       </div>
     </div>

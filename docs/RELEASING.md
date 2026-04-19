@@ -144,7 +144,7 @@ You don't need to manually create the release on GitHub or publish to crates.io 
 
 ## Publishing to crates.io
 
-The release workflow automatically publishes to [crates.io](https://crates.io/crates/kite) after creating the GitHub Release.
+The release workflow automatically publishes to [crates.io](https://crates.io/crates/kite-monitor) after creating the GitHub Release.
 
 ### Setup (one-time)
 
@@ -155,7 +155,7 @@ The release workflow automatically publishes to [crates.io](https://crates.io/cr
 
 - The `kite` crate with all metadata from `Cargo.toml` (description, license, repository, keywords, categories)
 - Only the source code — binary artifacts are separate (GitHub Releases)
-- Users can install with: `cargo install kite`
+- Users can install with: `cargo install kite-monitor`
 
 ### Manual publish (if needed)
 
@@ -187,7 +187,7 @@ Users can verify downloads: `sha256sum -c kite-v0.2.0-x86_64-unknown-linux-gnu.t
 
 **crates.io** (source install):
 ```bash
-cargo install kite
+cargo install kite-monitor
 ```
 
 ---

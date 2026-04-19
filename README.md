@@ -86,16 +86,23 @@ The layout engine adaptively adds or removes rows based on panel visibility.
 
 ### Planned
 
-- **Phase 4**: SSH remote monitoring, Prometheus export
 - **Phase 5**: Accessibility, i18n, platform packaging
 
 ---
 
 ## Quick Start
 
+### Install
+
+```bash
+cargo install kite-monitor
+```
+
+Or download a pre-built binary from [Releases](https://github.com/kafkade/kite/releases).
+
 ### Prerequisites
 
-- [Rust](https://rustup.rs/) 1.85+ (edition 2024)
+- [Rust](https://rustup.rs/) 1.85+ (edition 2024) — for building from source
 
 ### Build & Run
 
@@ -154,19 +161,24 @@ You can also adjust settings at runtime via the settings menu (`m`).
 
 Kite uses Cargo feature flags to control optional integrations:
 
-| Feature   | Default | Description                               |
-| --------- | ------- | ----------------------------------------- |
-| `gpu`     | ✅      | NVIDIA GPU monitoring via nvml-wrapper    |
-| `battery` | ✅      | Battery monitoring via starship-battery   |
-| `docker`  | ✅      | Docker container monitoring via bollard   |
-| `k8s`     | ❌      | Kubernetes pod monitoring via kube-rs     |
+| Feature      | Default | Description                               |
+| ------------ | ------- | ----------------------------------------- |
+| `gpu`        | ✅      | NVIDIA GPU monitoring via nvml-wrapper    |
+| `battery`    | ✅      | Battery monitoring via starship-battery   |
+| `docker`     | ✅      | Docker container monitoring via bollard   |
+| `k8s`        | ❌      | Kubernetes pod monitoring via kube-rs     |
+| `ssh`        | ❌      | SSH remote machine monitoring via russh   |
+| `prometheus` | ❌      | Prometheus metrics exporter at `/metrics` |
 
 Build with or without specific features:
 
 ```bash
-cargo build --release                        # All default features
-cargo build --release --features k8s         # Add Kubernetes support
-cargo build --release --no-default-features  # Minimal build
+cargo build --release                                   # All default features
+cargo build --release --features k8s                    # Add Kubernetes support
+cargo build --release --features ssh                    # Add SSH remote monitoring
+cargo build --release --features prometheus             # Add Prometheus exporter
+cargo build --release --features "k8s,ssh,prometheus"   # All optional features
+cargo build --release --no-default-features             # Minimal build
 ```
 
 ### Alert Configuration
