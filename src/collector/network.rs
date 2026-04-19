@@ -83,6 +83,20 @@ impl NetworkCollector {
     pub fn total_tx_bytes(&self) -> u64 {
         self.total_tx_bytes
     }
+
+    /// Set network data directly (used by replay mode).
+    pub fn set_network_data(
+        &mut self,
+        interfaces: Vec<InterfaceInfo>,
+        total_rx_bytes_sec: f64,
+        total_tx_bytes_sec: f64,
+    ) {
+        self.interfaces = interfaces;
+        self.total_rx_bytes_sec = total_rx_bytes_sec;
+        self.total_tx_bytes_sec = total_tx_bytes_sec;
+        self.rx_history.push(total_rx_bytes_sec);
+        self.tx_history.push(total_tx_bytes_sec);
+    }
 }
 
 impl Collector for NetworkCollector {

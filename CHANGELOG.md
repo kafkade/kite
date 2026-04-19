@@ -21,6 +21,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 - `remote_border` color in all 11 built-in themes and custom TOML theme files
 - Remote panel visibility in "Full" and "Server" layout presets
 - Remote monitoring section in help overlay
+- Prometheus metrics exporter — embedded HTTP server exposing all metrics at `/metrics` in Prometheus text format
+- `[prometheus]` TOML configuration with `enabled`, `port`, `bind_address`, and optional `auth_token` (bearer token auth)
+- Per-core CPU, per-disk, per-interface, and per-GPU metric labels in Prometheus output
+- `prometheus` feature flag for optional Prometheus dependency (opt-in, requires `--features prometheus`)
+- File-based metrics logging — log system metrics to JSON Lines or CSV files on each data tick
+- `[logging]` TOML configuration with `enabled`, `format` (json/csv), `path`, `rotation`, `compress`, and selectable `metrics`
+- Log rotation by file size or time interval with configurable retention
+- Gzip compression of rotated log files
+- Default log directory at platform data dir (`$XDG_DATA_HOME/kite/logs/` or equivalent)
+- Data replay mode — load a metrics log file and replay it in the TUI (`--replay <path>`)
+- Replay navigation: ←/→ to step through records, Home/End to seek, Space to toggle auto-play
+- Replay status indicator in the status bar showing position, total records, and timestamp
 - Hardware temperature monitoring via Sensors panel showing per-component temps with color-coded thresholds (green/yellow/red) and CPU temperature sparkline history
 - GPU monitoring panel with NVIDIA support via NVML — shows utilization, VRAM usage, temperature, fan speed, clock speeds, and power draw
 - Multi-GPU detection with primary GPU details and device count indicator
