@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-04-18
+
 ### Changed
 
 - Rename create from `kite` to `kite-monitor`.
@@ -140,7 +142,8 @@ First stable release. 🎉
 - 4-panel grid layout (CPU, memory, disk, network) + process table
 - Cross-platform support (Linux, macOS, Windows)
 
-[Unreleased]: https://github.com/kafkade/kite/compare/v1.1.0...HEAD
+[Unreleased]: https://github.com/kafkade/kite/compare/v1.1.1...HEAD
+[1.1.1]: https://github.com/kafkade/kite/compare/v1.1.0...v1.1.1
 [1.1.0]: https://github.com/kafkade/kite/compare/v1.0.0...v1.1.0
 [1.0.0]: https://github.com/kafkade/kite/compare/v0.3.0...v1.0.0
 [0.3.0]: https://github.com/kafkade/kite/compare/v0.2.0...v0.3.0
