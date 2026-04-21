@@ -37,7 +37,7 @@ sysinfo = "0.36"
 thiserror = "2"
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "time", "sync"] }
 toml = "1.1"
-nvml-wrapper = { version = "0.10", optional = true }
+nvml-wrapper = { version = "0.12", optional = true }
 starship-battery = { version = "0.10", optional = true }
 bollard = { version = "0.18", optional = true }
 kube = { version = "2.0", features = ["client", "config", "rustls-tls"], default-features = false, optional = true }
