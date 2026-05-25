@@ -86,7 +86,7 @@ impl DockerCollector {
     }
 
     async fn collect_async(&mut self) -> Result<()> {
-        use bollard::container::{ListContainersOptions, StatsOptions};
+        use bollard::query_parameters::{ListContainersOptions, StatsOptions};
         use futures::StreamExt;
 
         let client = match &self.client {
@@ -97,7 +97,7 @@ impl DockerCollector {
             }
         };
 
-        let opts = ListContainersOptions::<String> {
+        let opts = ListContainersOptions {
             all: true,
             ..Default::default()
         };
@@ -129,7 +129,12 @@ impl DockerCollector {
 
             let image = summary.image.clone().unwrap_or_default();
             let status = summary.status.clone().unwrap_or_default();
-            let state = ContainerState::from_str(summary.state.as_deref().unwrap_or("unknown"));
+            let state_str = summary
+                .state
+                .as_ref()
+                .map(|s| s.to_string())
+                .unwrap_or_else(|| "unknown".to_string());
+            let state = ContainerState::from_str(&state_str);
 
             let mut cpu_percent = 0.0;
             let mut memory_used = 0u64;
@@ -148,35 +153,49 @@ impl DockerCollector {
                 let mut stream = client.stats(id_full, Some(stats_opts));
                 if let Some(Ok(stats)) = stream.next().await {
                     // CPU calculation
-                    let cpu_delta = stats.cpu_stats.cpu_usage.total_usage as f64
-                        - stats.precpu_stats.cpu_usage.total_usage as f64;
-                    let system_delta = stats.cpu_stats.system_cpu_usage.unwrap_or(0) as f64
-                        - stats.precpu_stats.system_cpu_usage.unwrap_or(0) as f64;
-                    let num_cpus = stats.cpu_stats.online_cpus.unwrap_or(1) as f64;
+                    if let (Some(cpu), Some(precpu)) =
+                        (&stats.cpu_stats, &stats.precpu_stats)
+                    {
+                        let cpu_usage = cpu.cpu_usage.as_ref();
+                        let precpu_usage = precpu.cpu_usage.as_ref();
+                        if let (Some(cu), Some(pcu)) = (cpu_usage, precpu_usage) {
+                            let cpu_delta = cu.total_usage.unwrap_or(0) as f64
+                                - pcu.total_usage.unwrap_or(0) as f64;
+                            let system_delta = cpu.system_cpu_usage.unwrap_or(0) as f64
+                                - precpu.system_cpu_usage.unwrap_or(0) as f64;
+                            let num_cpus = cpu.online_cpus.unwrap_or(1) as f64;
 
-                    if system_delta > 0.0 {
-                        cpu_percent = (cpu_delta / system_delta) * num_cpus * 100.0;
+                            if system_delta > 0.0 {
+                                cpu_percent = (cpu_delta / system_delta) * num_cpus * 100.0;
+                            }
+                        }
                     }
 
                     // Memory
-                    memory_used = stats.memory_stats.usage.unwrap_or(0);
-                    memory_limit = stats.memory_stats.limit.unwrap_or(0);
+                    if let Some(mem) = &stats.memory_stats {
+                        memory_used = mem.usage.unwrap_or(0);
+                        memory_limit = mem.limit.unwrap_or(0);
+                    }
 
                     // Network I/O
                     if let Some(networks) = &stats.networks {
                         for iface in networks.values() {
-                            net_rx += iface.rx_bytes;
-                            net_tx += iface.tx_bytes;
+                            net_rx += iface.rx_bytes.unwrap_or(0);
+                            net_tx += iface.tx_bytes.unwrap_or(0);
                         }
                     }
 
                     // Block I/O
-                    if let Some(ref io_service) = stats.blkio_stats.io_service_bytes_recursive {
-                        for entry in io_service {
-                            match entry.op.to_lowercase().as_str() {
-                                "read" => block_read += entry.value,
-                                "write" => block_write += entry.value,
-                                _ => {}
+                    if let Some(ref blkio) = stats.blkio_stats {
+                        if let Some(ref io_service) = blkio.io_service_bytes_recursive {
+                            for entry in io_service {
+                                let op = entry.op.as_deref().unwrap_or("");
+                                let val = entry.value.unwrap_or(0);
+                                match op.to_lowercase().as_str() {
+                                    "read" => block_read += val,
+                                    "write" => block_write += val,
+                                    _ => {}
+                                }
                             }
                         }
                     }
@@ -205,7 +224,7 @@ impl DockerCollector {
 
     /// Start a stopped container.
     pub fn start_container(&self, id: &str) -> Result<()> {
-        use bollard::container::StartContainerOptions;
+        use bollard::query_parameters::StartContainerOptions;
 
         let client = self
             .client
@@ -215,7 +234,7 @@ impl DockerCollector {
         tokio::task::block_in_place(|| {
             tokio::runtime::Handle::current().block_on(async {
                 client
-                    .start_container(&id, None::<StartContainerOptions<String>>)
+                    .start_container(&id, None::<StartContainerOptions>)
                     .await
                     .map_err(|e| anyhow::anyhow!("Failed to start container: {}", e))
             })
@@ -224,7 +243,7 @@ impl DockerCollector {
 
     /// Stop a running container.
     pub fn stop_container(&self, id: &str) -> Result<()> {
-        use bollard::container::StopContainerOptions;
+        use bollard::query_parameters::StopContainerOptions;
 
         let client = self
             .client
@@ -243,7 +262,7 @@ impl DockerCollector {
 
     /// Restart a container.
     pub fn restart_container(&self, id: &str) -> Result<()> {
-        use bollard::container::RestartContainerOptions;
+        use bollard::query_parameters::RestartContainerOptions;
 
         let client = self
             .client
