@@ -153,9 +153,7 @@ impl DockerCollector {
                 let mut stream = client.stats(id_full, Some(stats_opts));
                 if let Some(Ok(stats)) = stream.next().await {
                     // CPU calculation
-                    if let (Some(cpu), Some(precpu)) =
-                        (&stats.cpu_stats, &stats.precpu_stats)
-                    {
+                    if let (Some(cpu), Some(precpu)) = (&stats.cpu_stats, &stats.precpu_stats) {
                         let cpu_usage = cpu.cpu_usage.as_ref();
                         let precpu_usage = precpu.cpu_usage.as_ref();
                         if let (Some(cu), Some(pcu)) = (cpu_usage, precpu_usage) {
