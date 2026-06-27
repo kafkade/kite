@@ -121,18 +121,79 @@ mod ssh_impl {
     use std::sync::Arc;
 
     /// SSH client handler for russh.
-    pub(super) struct SshHandler;
+    ///
+    /// Verifies the server host key against the user's `~/.ssh/known_hosts`
+    /// file. The decision is made in [`evaluate_host_key`]; on rejection a
+    /// human-readable reason is stored in `reject_reason` so [`SshConnection::connect`]
+    /// can surface it as a clear error.
+    pub(super) struct SshHandler {
+        host: String,
+        port: u16,
+        strict: bool,
+        reject_reason: Arc<std::sync::Mutex<Option<String>>>,
+    }
 
-    #[async_trait::async_trait]
+    /// Outcome of evaluating a server host key against `known_hosts`.
+    ///
+    /// Pure decision function, factored out for unit testing. `check` is the
+    /// result of `russh::keys::check_known_hosts`:
+    /// - `Ok(true)`  → key matches a recorded entry
+    /// - `Ok(false)` → host is not present in `known_hosts`
+    /// - `Err(KeyChanged)` → host is known but the key differs (possible MITM)
+    ///
+    /// Returns `Ok(())` to accept the key, or `Err(reason)` to reject with a
+    /// human-readable explanation.
+    pub(super) fn evaluate_host_key(
+        host: &str,
+        port: u16,
+        check: std::result::Result<bool, russh::keys::Error>,
+        strict: bool,
+    ) -> std::result::Result<(), String> {
+        match check {
+            Ok(true) => Ok(()),
+            Ok(false) => {
+                if strict {
+                    Err(format!(
+                        "host key for {host}:{port} not found in ~/.ssh/known_hosts — \
+                         add it (e.g. `ssh-keyscan {host} >> ~/.ssh/known_hosts`) \
+                         or set `strict_host_key = false` for this remote"
+                    ))
+                } else {
+                    Ok(())
+                }
+            }
+            // A changed key is always rejected, regardless of strict mode.
+            Err(russh::keys::Error::KeyChanged { line }) => Err(format!(
+                "host key for {host}:{port} does NOT match the entry in \
+                 ~/.ssh/known_hosts (line {line}) — possible man-in-the-middle \
+                 attack; connection refused"
+            )),
+            Err(e) => Err(format!(
+                "failed to verify host key for {host}:{port} against \
+                 ~/.ssh/known_hosts: {e}"
+            )),
+        }
+    }
+
     impl russh::client::Handler for SshHandler {
         type Error = russh::Error;
 
         async fn check_server_key(
             &mut self,
-            _server_public_key: &ssh_key::PublicKey,
+            server_public_key: &russh::keys::ssh_key::PublicKey,
         ) -> std::result::Result<bool, Self::Error> {
-            // Accept all host keys — see #49 for known_hosts verification.
-            Ok(true)
+            let check = russh::keys::check_known_hosts(&self.host, self.port, server_public_key);
+            match evaluate_host_key(&self.host, self.port, check, self.strict) {
+                Ok(()) => Ok(true),
+                Err(reason) => {
+                    if let Ok(mut slot) = self.reject_reason.lock() {
+                        *slot = Some(reason);
+                    }
+                    // Returning Ok(false) aborts the handshake; connect() will
+                    // surface the stored reason as the error.
+                    Ok(false)
+                }
+            }
         }
     }
 
@@ -163,7 +224,13 @@ mod ssh_impl {
                 ..Default::default()
             };
 
-            let handler = SshHandler;
+            let reject_reason = Arc::new(std::sync::Mutex::new(None::<String>));
+            let handler = SshHandler {
+                host: self.config.host.clone(),
+                port: self.config.port,
+                strict: self.config.strict_host_key,
+                reject_reason: Arc::clone(&reject_reason),
+            };
             let mut session = tokio::time::timeout(
                 Duration::from_secs(10),
                 russh::client::connect(
@@ -173,7 +240,13 @@ mod ssh_impl {
                 ),
             )
             .await
-            .map_err(|_| anyhow::anyhow!("SSH connect timeout"))??;
+            .map_err(|_| anyhow::anyhow!("SSH connect timeout"))?
+            .map_err(
+                |e| match reject_reason.lock().ok().and_then(|r| r.clone()) {
+                    Some(reason) => anyhow::anyhow!(reason),
+                    None => anyhow::Error::new(e),
+                },
+            )?;
 
             // Authenticate with key file or try default key locations
             let key_path = if let Some(ref kp) = self.config.key {
@@ -185,9 +258,11 @@ mod ssh_impl {
             let authenticated = if let Some(path) = key_path {
                 let key = russh::keys::load_secret_key(&path, None)
                     .map_err(|e| anyhow::anyhow!("Failed to load key {}: {}", path, e))?;
+                let key = russh::keys::PrivateKeyWithHashAlg::new(Arc::new(key), None);
                 session
-                    .authenticate_publickey(&self.config.user, Arc::new(key))
+                    .authenticate_publickey(&self.config.user, key)
                     .await?
+                    .success()
             } else {
                 return Err(anyhow::anyhow!(
                     "No key file found — specify key in [[remotes]] config"
@@ -742,6 +817,7 @@ Inter-|   Receive                                                |  Transmit
             user: "monitor".to_string(),
             key: None,
             agent_forwarding: false,
+            strict_host_key: true,
         }];
         let collector = RemoteCollector::new(&configs, 300);
         assert!(collector.has_remotes());
@@ -755,5 +831,94 @@ Inter-|   Receive                                                |  Transmit
     async fn collect_with_no_remotes_succeeds() {
         let mut collector = RemoteCollector::new(&[], 300);
         assert!(collector.collect().is_ok());
+    }
+
+    #[cfg(feature = "ssh")]
+    mod host_key {
+        use super::super::ssh_impl::evaluate_host_key;
+        use russh::keys::Error as KeysError;
+
+        #[test]
+        fn matching_key_is_accepted() {
+            assert!(evaluate_host_key("h", 22, Ok(true), true).is_ok());
+            assert!(evaluate_host_key("h", 22, Ok(true), false).is_ok());
+        }
+
+        #[test]
+        fn unknown_host_rejected_when_strict() {
+            let err = evaluate_host_key("example.com", 2222, Ok(false), true)
+                .expect_err("unknown host must be rejected in strict mode");
+            assert!(err.contains("example.com:2222"));
+            assert!(err.contains("known_hosts"));
+            assert!(err.contains("strict_host_key"));
+        }
+
+        #[test]
+        fn unknown_host_accepted_when_not_strict() {
+            assert!(evaluate_host_key("example.com", 22, Ok(false), false).is_ok());
+        }
+
+        #[test]
+        fn changed_key_rejected_even_when_not_strict() {
+            for strict in [true, false] {
+                let err =
+                    evaluate_host_key("h", 22, Err(KeysError::KeyChanged { line: 7 }), strict)
+                        .expect_err("changed key must always be rejected");
+                assert!(err.contains("man-in-the-middle"));
+                assert!(err.contains("line 7"));
+            }
+        }
+
+        #[test]
+        fn other_verification_error_is_rejected() {
+            let err = evaluate_host_key("h", 22, Err(KeysError::NoHomeDir), true)
+                .expect_err("verification errors must be rejected");
+            assert!(err.contains("failed to verify host key"));
+        }
+
+        #[test]
+        fn check_known_hosts_path_round_trips() {
+            use russh::keys::check_known_hosts_path;
+            use russh::keys::ssh_key::PublicKey;
+            use std::io::Write;
+
+            // Two distinct, valid ed25519 public keys used as fixtures.
+            const KEY_A: &str =
+                "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIMZnmucFStxGbNGS0/CFckcpmZ++zEybz1LBTJZrxaQe";
+            const KEY_B: &str =
+                "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIBnPAlmykuVAqgwg3GCySs8Mp6sXD/Sma8CuE6eABOky";
+
+            let key_a = PublicKey::from_openssh(KEY_A).unwrap();
+            let key_b = PublicKey::from_openssh(KEY_B).unwrap();
+
+            // Record KEY_A for "host.example" in a throwaway known_hosts file.
+            let path = std::env::temp_dir().join(format!(
+                "kite-known-hosts-{}-{}",
+                std::process::id(),
+                line!()
+            ));
+            {
+                let mut f = std::fs::File::create(&path).unwrap();
+                writeln!(f, "host.example {KEY_A}").unwrap();
+            }
+
+            // Recorded host + key → matches → accepted.
+            let matched = check_known_hosts_path("host.example", 22, &key_a, &path).unwrap();
+            assert!(evaluate_host_key("host.example", 22, Ok(matched), true).is_ok());
+
+            // Unrecorded host → no match → rejected in strict mode.
+            let unknown = check_known_hosts_path("other.example", 22, &key_a, &path).unwrap();
+            assert!(evaluate_host_key("other.example", 22, Ok(unknown), true).is_err());
+
+            // Different key for the recorded host → KeyChanged → rejected.
+            let changed = check_known_hosts_path("host.example", 22, &key_b, &path);
+            assert!(matches!(
+                changed,
+                Err(russh::keys::Error::KeyChanged { .. })
+            ));
+            assert!(evaluate_host_key("host.example", 22, changed, true).is_err());
+
+            let _ = std::fs::remove_file(&path);
+        }
     }
 }

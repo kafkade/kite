@@ -429,7 +429,12 @@ kite/
   port = 22
   user = "monitor"
   key = "~/.ssh/id_ed25519"
+  strict_host_key = true  # verify host key against ~/.ssh/known_hosts (default)
   ```
+- Server host keys are verified against `~/.ssh/known_hosts` (hashed entries
+  supported). Unknown hosts are rejected by default; set `strict_host_key = false`
+  per remote to accept unknown hosts on first use (insecure). A changed host key
+  is always rejected as a possible man-in-the-middle attack.
 - Deploy lightweight data-collection agent over SSH (embedded binary or script)
 - Multi-machine view: tab-switch between machines or split-screen
 - Connection health indicator (latency, reconnect on failure)
