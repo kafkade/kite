@@ -214,10 +214,21 @@ pub struct RemoteConfig {
     /// Enable SSH agent forwarding
     #[serde(default)]
     pub agent_forwarding: bool,
+    /// Verify the server host key against `~/.ssh/known_hosts` (default: true).
+    /// When true, unknown hosts are rejected. Set to false to accept unknown
+    /// hosts on first use (insecure — disables protection against MITM for
+    /// new hosts). A changed host key is always rejected regardless of this
+    /// setting.
+    #[serde(default = "default_strict_host_key")]
+    pub strict_host_key: bool,
 }
 
 fn default_ssh_port() -> u16 {
     22
+}
+
+fn default_strict_host_key() -> bool {
+    true
 }
 
 /// Log output format.

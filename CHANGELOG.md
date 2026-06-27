@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+### Added
+
+- SSH host key verification against `~/.ssh/known_hosts` for remote monitoring (supports hashed entries). Unknown hosts are rejected by default; a changed host key is always rejected as a possible man-in-the-middle attack
+- `strict_host_key` option in `[[remotes]]` config (default `true`) to optionally accept unknown hosts on first use
+
+### Fixed
+
+- SSH remote monitoring (`--features ssh`) no longer accepted arbitrary server host keys, closing a man-in-the-middle gap in the remote collector
+- Restored `--features ssh` build compatibility with russh 0.61 (updated host-key handler and public-key authentication to the new async-trait-free API)
+
 ## [1.1.1] - 2026-04-18
 
 ### Changed
