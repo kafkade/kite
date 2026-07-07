@@ -1,0 +1,77 @@
+# cargo-deny configuration for kite.
+# Audits dependencies for security advisories, license compliance,
+# banned/duplicate crates, and crate sources.
+#
+# Run locally with: cargo deny --all-features check
+# Docs: https://embarkstudios.github.io/cargo-deny/
+
+[graph]
+# Audit the full dependency graph, including every optional feature
+# (gpu, battery, docker, k8s, ssh, prometheus) so nothing is missed.
+all-features = true
+
+[advisories]
+# Fail on security vulnerabilities and yanked crates. Unmaintained crates
+# are only gated when they are direct workspace dependencies; transitive
+# unmaintained crates (e.g. `paste` via ratatui) stay visible as warnings
+# without blocking CI.
+unmaintained = "workspace"
+yanked = "deny"
+ignore = [
+    # rsa: "Marvin Attack" timing sidechannel (RSA key recovery).
+    # Pulled in only by `russh` (ssh feature) via the pre-release
+    # rsa 0.10.0-rc.x line, which has no patched release yet. Kite does
+    # not perform RSA private-key operations on attacker-controlled
+    # timing channels; revisit when russh moves to a fixed rsa release.
+    "RUSTSEC-2023-0071",
+
+    # time <0.3.47: DoS via stack exhaustion when parsing untrusted
+    # RFC 2822 input. Pulled transitively by `plist`. The fix (time
+    # 0.3.47) requires Rust 1.88, above kite's MSRV (1.85), and kite does
+    # not parse untrusted RFC 2822 input. Revisit when MSRV/plist allow.
+    "RUSTSEC-2026-0009",
+
+    # quick-xml <0.38.x fixed: quadratic runtime / unbounded namespace
+    # allocation DoS. Pulled transitively by `plist`; no in-range fix is
+    # available for the version plist requires. Kite does not parse
+    # untrusted XML. Revisit when plist bumps quick-xml.
+    "RUSTSEC-2026-0194",
+    "RUSTSEC-2026-0195",
+]
+
+[licenses]
+# Permissive licenses present in the dependency tree. Kite itself is
+# dual-licensed MIT OR Apache-2.0; the rest are transitive dependencies.
+allow = [
+    "MIT",
+    "MIT-0",
+    "Apache-2.0",
+    "Apache-2.0 WITH LLVM-exception",
+    "BSD-1-Clause",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "0BSD",
+    "ISC",
+    "BSL-1.0",
+    "CC0-1.0",
+    "Zlib",
+    "Unicode-3.0",
+    "Unlicense",
+    # MPL-2.0: weak (file-level) copyleft, from `option-ext` (a
+    # transitive dep of `dirs`). Safe to link against for a CLI tool.
+    "MPL-2.0",
+]
+# Confidence threshold for detecting a license from its text (0.0-1.0).
+confidence-threshold = 0.8
+
+[bans]
+# The tree contains several duplicated crate versions (common in large
+# async/crypto graphs). Warn rather than fail so it stays visible.
+multiple-versions = "warn"
+wildcards = "allow"
+
+[sources]
+# Only allow crates from known registries / git sources.
+unknown-registry = "deny"
+unknown-git = "deny"
+allow-registry = ["https://github.com/rust-lang/crates.io-index"]
