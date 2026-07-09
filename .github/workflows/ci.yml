@@ -61,3 +61,20 @@ jobs:
         uses: EmbarkStudios/cargo-deny-action@bb137d7af7e4fb67e5f82a49c4fce4fad40782fe # v2.0.20
         with:
           command: check
+
+  # Aggregation gate: this is the single required status check (context "Validate")
+  # enforced by branch protection. It succeeds only if every job above passed,
+  # which keeps the required check stable regardless of how the test matrix grows.
+  validate:
+    name: Validate
+    runs-on: ubuntu-latest
+    needs: [lint, test, deny]
+    if: always()
+    steps:
+      - name: Verify all required jobs succeeded
+        run: |
+          if [ "${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}" = "true" ]; then
+            echo "One or more required CI jobs did not succeed."
+            exit 1
+          fi
+          echo "All required CI jobs succeeded."
