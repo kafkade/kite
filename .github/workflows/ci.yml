@@ -9,9 +9,13 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 jobs:
-  ci:
-    name: Validate
+  lint:
+    name: Lint & format
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -20,14 +24,33 @@ jobs:
           toolchain: stable
           components: rustfmt, clippy
       - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
+        with:
+          key: lint-ubuntu-latest-stable
       - name: Check formatting
         run: cargo fmt -- --check
       - name: Lint with clippy
         run: cargo clippy -- -D warnings
-      - name: Run tests
-        run: cargo test
       - name: Build without GPU feature
         run: cargo build --no-default-features
+
+  test:
+    name: Test ${{ matrix.os }} / rust ${{ matrix.rust }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        rust: [stable, "1.85"] # stable + MSRV
+    steps:
+      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: dtolnay/rust-toolchain@67ef31d5b988238dd797d409d6f9574278e20537 # stable
+        with:
+          toolchain: ${{ matrix.rust }}
+      - uses: Swatinem/rust-cache@e18b497796c12c097a38f9edb9d0641fb99eee32 # v2
+        with:
+          key: ${{ matrix.os }}-${{ matrix.rust }}
+      - name: Run tests
+        run: cargo test
 
   deny:
     name: Audit dependencies
@@ -38,3 +61,20 @@ jobs:
         uses: EmbarkStudios/cargo-deny-action@bb137d7af7e4fb67e5f82a49c4fce4fad40782fe # v2.0.20
         with:
           command: check
+
+  # Aggregation gate: this is the single required status check (context "Validate")
+  # enforced by branch protection. It succeeds only if every job above passed,
+  # which keeps the required check stable regardless of how the test matrix grows.
+  validate:
+    name: Validate
+    runs-on: ubuntu-latest
+    needs: [lint, test, deny]
+    if: always()
+    steps:
+      - name: Verify all required jobs succeeded
+        run: |
+          if [ "${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}" = "true" ]; then
+            echo "One or more required CI jobs did not succeed."
+            exit 1
+          fi
+          echo "All required CI jobs succeeded."
