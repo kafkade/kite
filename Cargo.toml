@@ -28,7 +28,7 @@ anyhow = "1"
 chrono = "0.4"
 clap = { version = "4", features = ["derive"] }
 crossterm = { version = "0.29", features = ["event-stream"] }
-dirs = "6"
+dirs = "7"
 futures = "0.3"
 hostname = "0.4"
 ratatui = "0.29"
@@ -37,7 +37,7 @@ sysinfo = "0.36"
 thiserror = "2"
 tokio = { version = "1", features = ["rt-multi-thread", "macros", "time", "sync"] }
 toml = "1.1"
-nvml-wrapper = { version = "0.12", optional = true }
+nvml-wrapper = { version = "0.13", optional = true }
 starship-battery = { version = "0.10", optional = true }
 bollard = { version = "0.21", optional = true }
 kube = { version = "2.0", features = ["client", "config", "rustls-tls"], default-features = false, optional = true }
